@@ -109,3 +109,38 @@ func Measure(ctx context.Context, srcIP net.IP, iface string, opt Options, probe
 func round2(f float64) float64 {
 	return float64(int64(f*100+0.5)) / 100
 }
+
+// MeasureBest probes each target in turn and keeps the healthiest result,
+// stopping early once a lossless path is found. It is shared by the CLI scan
+// and the live agent source.
+func MeasureBest(ctx context.Context, srcIP net.IP, iface string, targets []string, opt Options, prober Prober) Metrics {
+	var best Metrics
+	first := true
+	for _, tgt := range targets {
+		o := opt
+		o.Target = tgt
+		m := Measure(ctx, srcIP, iface, o, prober)
+		if first || Better(m, best) {
+			best, first = m, false
+		}
+		if best.OK && best.LossPct == 0 {
+			break
+		}
+		if ctx.Err() != nil {
+			break
+		}
+	}
+	return best
+}
+
+// Better reports whether metrics a are healthier than b: available beats
+// unavailable, then lower loss, then lower latency.
+func Better(a, b Metrics) bool {
+	if a.OK != b.OK {
+		return a.OK
+	}
+	if a.LossPct != b.LossPct {
+		return a.LossPct < b.LossPct
+	}
+	return a.LatencyMs < b.LatencyMs
+}

@@ -1,10 +1,10 @@
-// Command continuity is the Continuity Edge Agent (Sprint 1–3 demonstrator).
+// Command continuity is the Continuity Edge Agent.
 //
-// Each scan it discovers the host's network interfaces, measures live latency,
-// jitter and packet loss on every usable bearer, computes a 0–100 health score
-// under the selected application profile, and prints a ranked table naming the
-// PRIMARY and BACKUP paths. This is the sensing-and-scoring core that the
-// policy engine, route failover and dashboard build on in later sprints.
+//	continuity [scan]   discover, probe, score and rank bearers (one-shot or live table)
+//	continuity serve    run the control loop and serve the dashboard + REST API
+//
+// scan is the Sprint 1–3 sensing core; serve adds the policy engine, failover,
+// simulator and web dashboard (Sprints 4–7).
 package main
 
 import (
@@ -14,6 +14,7 @@ import (
 	"fmt"
 	"io"
 	"net"
+	"net/http"
 	"os"
 	"os/signal"
 	"sort"
@@ -22,60 +23,59 @@ import (
 	"text/tabwriter"
 	"time"
 
+	"github.com/gobijega/continuity/internal/agent"
+	"github.com/gobijega/continuity/internal/api"
 	"github.com/gobijega/continuity/internal/config"
 	"github.com/gobijega/continuity/internal/interfaces"
+	"github.com/gobijega/continuity/internal/policy"
+	"github.com/gobijega/continuity/internal/routing"
 	"github.com/gobijega/continuity/internal/scoring"
+	"github.com/gobijega/continuity/internal/simulator"
 	"github.com/gobijega/continuity/internal/telemetry"
 )
 
 // Version is overridable at build time via -ldflags "-X main.Version=...".
-var Version = "0.1.0-dev"
-
-type row struct {
-	Interface string            `json:"interface"`
-	Kind      string            `json:"kind"`
-	Address   string            `json:"address"`
-	Metrics   telemetry.Metrics `json:"metrics"`
-	Score     scoring.Score     `json:"score"`
-	Role      string            `json:"role"`
-}
-
-type report struct {
-	Node    string    `json:"node"`
-	Profile string    `json:"profile"`
-	At      time.Time `json:"at"`
-	Rows    []row     `json:"interfaces"`
-}
+var Version = "0.2.0-dev"
 
 func main() {
-	var (
-		once     = flag.Bool("once", false, "run a single scan and exit")
-		jsonOut  = flag.Bool("json", false, "emit JSON instead of a table")
-		interval = flag.Duration("interval", 2*time.Second, "delay between scans in continuous mode")
-		probeInt = flag.Duration("probe-interval", 0, "delay between probes within a bearer (overrides config)")
-		profile  = flag.String("profile", "", "scoring profile: default|voice|video|telemetry|bulk")
-		cfgPath  = flag.String("config", "", "path to a YAML config file")
-		count    = flag.Int("count", 0, "probes per bearer per scan (overrides config)")
-		targets  = flag.String("targets", "", "comma-separated host:port probe targets (overrides config)")
-		showAll  = flag.Bool("all", false, "include loopback, virtual and down interfaces")
-		showVer  = flag.Bool("version", false, "print version and exit")
-	)
-	flag.Parse()
+	args := os.Args[1:]
+	if len(args) > 0 {
+		switch args[0] {
+		case "serve":
+			serveMain(args[1:])
+			return
+		case "scan":
+			args = args[1:]
+		case "version", "--version", "-version":
+			fmt.Println("continuity", Version)
+			return
+		}
+	}
+	scanMain(args)
+}
+
+// ---------------------------------------------------------------- scan mode
+
+func scanMain(args []string) {
+	fs := flag.NewFlagSet("scan", flag.ExitOnError)
+	once := fs.Bool("once", false, "run a single scan and exit")
+	jsonOut := fs.Bool("json", false, "emit JSON instead of a table")
+	interval := fs.Duration("interval", 2*time.Second, "delay between scans in continuous mode")
+	probeInt := fs.Duration("probe-interval", 0, "delay between probes within a bearer (overrides config)")
+	profile := fs.String("profile", "", "scoring profile: default|voice|video|telemetry|bulk")
+	cfgPath := fs.String("config", "", "path to a YAML config file")
+	count := fs.Int("count", 0, "probes per bearer per scan (overrides config)")
+	targets := fs.String("targets", "", "comma-separated host:port probe targets (overrides config)")
+	showAll := fs.Bool("all", false, "include loopback, virtual and down interfaces")
+	showVer := fs.Bool("version", false, "print version and exit")
+	_ = fs.Parse(args)
 
 	if *showVer {
 		fmt.Println("continuity", Version)
 		return
 	}
 
-	cfg := config.Default()
-	if *cfgPath != "" {
-		c, err := config.Load(*cfgPath)
-		if err != nil {
-			fmt.Fprintf(os.Stderr, "continuity: config: %v\n", err)
-			os.Exit(1)
-		}
-		cfg = c
-	}
+	cfg := loadConfig(*cfgPath)
 	if *profile != "" {
 		cfg.Profile = *profile
 	}
@@ -97,7 +97,7 @@ func main() {
 	defer stop()
 
 	run := func() {
-		rep := scan(ctx, cfg, weights, thresh, prober, *showAll)
+		rep := runScan(ctx, cfg, weights, thresh, prober, *showAll)
 		if *jsonOut {
 			enc := json.NewEncoder(os.Stdout)
 			enc.SetIndent("", "  ")
@@ -123,7 +123,23 @@ func main() {
 	}
 }
 
-func scan(ctx context.Context, cfg config.Config, w scoring.Weights, t scoring.Thresholds, prober telemetry.Prober, all bool) report {
+type row struct {
+	Interface string            `json:"interface"`
+	Kind      string            `json:"kind"`
+	Address   string            `json:"address"`
+	Metrics   telemetry.Metrics `json:"metrics"`
+	Score     scoring.Score     `json:"score"`
+	Role      string            `json:"role"`
+}
+
+type report struct {
+	Node    string    `json:"node"`
+	Profile string    `json:"profile"`
+	At      time.Time `json:"at"`
+	Rows    []row     `json:"interfaces"`
+}
+
+func runScan(ctx context.Context, cfg config.Config, w scoring.Weights, t scoring.Thresholds, prober telemetry.Prober, all bool) report {
 	rep := report{Node: cfg.Node, Profile: cfg.Profile, At: time.Now()}
 	ifs, err := interfaces.Discover()
 	if err != nil {
@@ -135,7 +151,8 @@ func scan(ctx context.Context, cfg config.Config, w scoring.Weights, t scoring.T
 			continue
 		}
 		src := net.ParseIP(it.PrimaryIPv4())
-		m := measureBest(ctx, src, it.Name, cfg.Probe, prober)
+		m := telemetry.MeasureBest(ctx, src, it.Name, cfg.Probe.Targets,
+			telemetry.Options{Count: cfg.Probe.Count, Interval: cfg.Probe.Interval, Timeout: cfg.Probe.Timeout}, prober)
 		if mbps, ok := telemetry.LinkSpeedMbps(it.Name); ok {
 			m.ThroughputMbps = mbps
 		}
@@ -145,7 +162,7 @@ func scan(ctx context.Context, cfg config.Config, w scoring.Weights, t scoring.T
 			JitterMs:       m.JitterMs,
 			LossPct:        m.LossPct,
 			ThroughputMbps: m.ThroughputMbps,
-			ReliabilityPct: 100, // no historical record yet (future sprint)
+			ReliabilityPct: 100,
 			CostScore:      costScore(it.Kind),
 		}
 		rep.Rows = append(rep.Rows, row{
@@ -175,43 +192,88 @@ func scan(ctx context.Context, cfg config.Config, w scoring.Weights, t scoring.T
 	return rep
 }
 
-// measureBest probes each configured target and keeps the healthiest result,
-// stopping early once a lossless path is found.
-func measureBest(ctx context.Context, src net.IP, iface string, pc config.Probe, prober telemetry.Prober) telemetry.Metrics {
-	var best telemetry.Metrics
-	first := true
-	for _, tgt := range pc.Targets {
-		m := telemetry.Measure(ctx, src, iface, telemetry.Options{
-			Target:   tgt,
-			Count:    pc.Count,
-			Interval: pc.Interval,
-			Timeout:  pc.Timeout,
-		}, prober)
-		if first || betterMetrics(m, best) {
-			best, first = m, false
-		}
-		if best.OK && best.LossPct == 0 {
-			break
-		}
-		if ctx.Err() != nil {
-			break
-		}
+// ---------------------------------------------------------------- serve mode
+
+func serveMain(args []string) {
+	fs := flag.NewFlagSet("serve", flag.ExitOnError)
+	addr := fs.String("addr", "127.0.0.1:8080", "dashboard/API listen address")
+	useSim := fs.Bool("sim", false, "run with the built-in simulator instead of live interfaces")
+	profile := fs.String("profile", "", "scoring profile")
+	node := fs.String("node", "", "node name")
+	interval := fs.Duration("interval", time.Second, "control-loop interval")
+	apply := fs.Bool("apply", false, "apply real Linux route changes (needs root)")
+	cfgPath := fs.String("config", "", "path to a YAML config file (live mode)")
+	_ = fs.Parse(args)
+
+	cfg := loadConfig(*cfgPath)
+	if *node != "" {
+		cfg.Node = *node
 	}
-	return best
+	if *profile != "" {
+		cfg.Profile = *profile
+	}
+
+	var src agent.Source
+	var sim *simulator.Sim
+	if *useSim {
+		sim = simulator.NewDemo()
+		src = agent.NewSimSource(sim, "5g")
+		if cfg.Node == "edge-node" {
+			cfg.Node = "vehicle-01"
+		}
+	} else {
+		src = agent.NewLiveSource(cfg.Probe)
+	}
+
+	var router routing.Manager = routing.NewDryRun()
+	if *apply {
+		router = routing.NewLinux()
+	}
+
+	hyst := policy.DefaultHysteresis()
+	if *useSim {
+		hyst = policy.Hysteresis{MinImprovement: 12, FailureThreshold: 35, RecoveryThreshold: 60, MinDwell: 3 * time.Second, DegradationHold: 2}
+	}
+
+	a := agent.New(agent.Options{Node: cfg.Node, Profile: cfg.Profile, Source: src, Router: router, Hyst: hyst})
+
+	ctx, stop := signal.NotifyContext(context.Background(), os.Interrupt, syscall.SIGTERM)
+	defer stop()
+	go a.Run(ctx, *interval)
+
+	srv := api.New(a, sim)
+	httpSrv := &http.Server{Addr: *addr, Handler: srv.Handler()}
+	go func() {
+		<-ctx.Done()
+		sh, cancel := context.WithTimeout(context.Background(), 2*time.Second)
+		defer cancel()
+		_ = httpSrv.Shutdown(sh)
+	}()
+
+	fmt.Printf("continuity serve — node %s — http://%s  (sim=%v, apply=%v)\n", cfg.Node, *addr, *useSim, *apply)
+	if err := httpSrv.ListenAndServe(); err != nil && err != http.ErrServerClosed {
+		fmt.Fprintln(os.Stderr, "continuity: serve:", err)
+		os.Exit(1)
+	}
 }
 
-func betterMetrics(a, b telemetry.Metrics) bool {
-	if a.OK != b.OK {
-		return a.OK
+// ---------------------------------------------------------------- shared
+
+func loadConfig(path string) config.Config {
+	cfg := config.Default()
+	if path != "" {
+		c, err := config.Load(path)
+		if err != nil {
+			fmt.Fprintf(os.Stderr, "continuity: config: %v\n", err)
+			os.Exit(1)
+		}
+		cfg = c
 	}
-	if a.LossPct != b.LossPct {
-		return a.LossPct < b.LossPct
-	}
-	return a.LatencyMs < b.LatencyMs
+	return cfg
 }
 
 // costScore reflects that metered bearers (cellular) are less desirable for
-// cost-sensitive traffic. Later sprints will source this from policy.
+// cost-sensitive traffic. Later sprints source this from policy.
 func costScore(k interfaces.Kind) float64 {
 	if k == interfaces.KindCellular {
 		return 40

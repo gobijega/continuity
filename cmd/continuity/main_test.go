@@ -45,15 +45,15 @@ func TestCostScore(t *testing.T) {
 func TestBetterMetrics(t *testing.T) {
 	up := telemetry.Metrics{OK: true, LossPct: 5, LatencyMs: 100}
 	down := telemetry.Metrics{OK: false}
-	if !betterMetrics(up, down) {
+	if !telemetry.Better(up, down) {
 		t.Error("an OK metric should beat a not-OK one")
 	}
 	lowLoss := telemetry.Metrics{OK: true, LossPct: 1, LatencyMs: 200}
-	if !betterMetrics(lowLoss, up) {
+	if !telemetry.Better(lowLoss, up) {
 		t.Error("lower loss should win")
 	}
 	lowLat := telemetry.Metrics{OK: true, LossPct: 5, LatencyMs: 50}
-	if !betterMetrics(lowLat, up) {
+	if !telemetry.Better(lowLat, up) {
 		t.Error("with equal loss, lower latency should win")
 	}
 }

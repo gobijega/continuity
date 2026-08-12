@@ -6,120 +6,133 @@ Continuity is edge-deployed software that maintains application connectivity
 across multiple communications bearers — cellular, satellite, radio, Wi-Fi and
 wired — when individual links become congested, degraded, jammed or unavailable.
 
-This repository contains the **Edge Agent**: the autonomous sensing-and-scoring
-core that runs on every Continuity node. It is **Continuity 0.1 (demonstrator),
-Sprints 1–3** — interface discovery, link telemetry, and the scoring engine.
-It is hardware-agnostic, runs on standard Linux, has **zero external
-dependencies**, and needs no cloud connectivity.
+This repository is the **Continuity Edge Agent**. It now covers **Sprints 1–7**
+of the 0.1 demonstrator: interface discovery, link telemetry, scoring, the
+policy engine with hysteresis, automated failover, a degradation simulator, and
+a live web dashboard. It is hardware-agnostic, runs on standard Linux, has
+**zero external dependencies**, and needs no cloud connectivity.
 
-## What it does today
+![Continuity dashboard](docs/dashboard.png)
 
-- **Discovers** the host's network interfaces and classifies each by bearer type
-  (ethernet / wifi / cellular / tunnel / virtual), reading Linux sysfs for
-  operational state and device type.
-- **Measures** live latency, jitter and packet loss per bearer. Each probe is
-  bound to that interface's source address, so every bearer is measured
-  independently even when several are up at once.
-- **Scores** each bearer 0–100 under an explicit, configurable weighting, with
-  application **profiles** (voice / video / telemetry / bulk) that re-rank the
-  same links for different traffic classes. An unavailable bearer scores 0.
-- **Ranks** bearers and names the PRIMARY and BACKUP paths — as a live console
-  table or as JSON for downstream tooling.
+*Live dashboard after a simulated 5G degradation: the agent has autonomously
+failed over 5G → SATCOM and logged the decision, staying RESILIENT throughout.*
 
-## Quickstart
+## Try the demo (no root, no radios)
 
 Requires Go 1.24+.
 
 ```sh
-go run ./cmd/continuity --once             # single scan, table output
-go run ./cmd/continuity --profile voice    # continuous, voice-weighted scoring
-go run ./cmd/continuity --json             # machine-readable output
-go run ./cmd/continuity --all              # include loopback / virtual / down
+go run ./cmd/continuity serve --sim
+# open http://127.0.0.1:8080  →  click "Degrade 5G" and watch it fail over
 ```
 
-Illustrative output on a multi-bearer edge node:
+The `--sim` flag runs the whole control loop over a built-in simulator, so you
+can drive DEGRADE / OUTAGE / RESTORE from the dashboard and see real scoring,
+policy and failover decisions — without touching the network.
+
+## Or inspect real bearers
+
+```sh
+go run ./cmd/continuity --once            # single scan of this host, table output
+go run ./cmd/continuity --profile voice   # continuous, voice-weighted scoring
+go run ./cmd/continuity --json            # machine-readable
+go run ./cmd/continuity serve             # live dashboard over real interfaces
+```
 
 ```
-JEGASEC Continuity  ·  node vehicle-01  ·  profile default  ·  04:17:20
+JEGASEC Continuity  ·  node vehicle-01  ·  profile default
 
   BEARER  TYPE      ADDRESS       LAT(ms)  JIT(ms)  LOSS  ROLE     SCORE
   wwan0   cellular  10.12.4.8     28       4        0%    PRIMARY   88.6  █████████·
-  sat0    tunnel    100.72.0.3    610      22       0%    BACKUP    73.9  ███████···
-  wlan0   wifi      192.168.1.20  85       9        12%   STANDBY   37.4  ████······
+  sat0    tunnel    100.72.0.3    140      18       0%    BACKUP    84.1  ████████··
+  wlan0   wifi      192.168.1.20  85       9        12%   STANDBY   47.4  ████······
 ```
 
-When 5G degrades (rising loss and latency), its score falls below the backup and
-the ranking flips — the signal the policy engine and route-failover layers act
-on in the next sprints.
+## How it works
 
-## How the score works
+1. **Discover** every network interface and classify it by bearer type
+   (`internal/interfaces`).
+2. **Measure** live latency, jitter and packet loss per bearer — each probe
+   source-bound so bearers are measured independently (`internal/telemetry`).
+3. **Score** each bearer 0–100 under an explicit, weighted, explainable model
+   with per-application profiles (`internal/scoring`).
+4. **Decide** with hysteresis — rest on the preferred bearer, migrate only when
+   another is clearly and persistently better, fail back on recovery, never flap
+   (`internal/policy`).
+5. **Act** by making the chosen bearer the active route (`internal/routing`;
+   DryRun by default, real Linux routing with `--apply`).
+6. **Observe** through an event log, REST API and dashboard (`internal/events`,
+   `internal/api`).
 
-Each raw metric maps onto a 0–100 sub-score against explicit thresholds
-(`internal/scoring`), and the total is a weighted, normalised sum. The weights
-come from the selected application **profile**, so a low-latency / low-bandwidth
-link wins for voice while a high-bandwidth / high-latency link wins for bulk
-transfer — the same inputs, ranked differently by intent. Every sub-score is
-reported (see `--json`), so a decision can always be explained rather than
-taken on trust.
+The `internal/agent` package is the control loop tying these together over a
+pluggable live-or-simulated source.
+
+## REST API (spec §22)
+
+| Method & path | Purpose |
+|---|---|
+| `GET /api/v1/state` | Full snapshot (node, status, active path, bearers, events) |
+| `GET /api/v1/node` | Node id, status, active interface |
+| `GET /api/v1/interfaces` | All bearers with metrics + score + role |
+| `GET /api/v1/interfaces/{name}` | One bearer |
+| `GET /api/v1/events` | Recent decision / state-change events |
+| `GET /api/v1/policy` | Active profile and traffic-class → profile map |
+| `POST /api/v1/simulator/{name}/{degrade\|outage\|restore}` | Demo controls (sim mode) |
 
 ## Project layout
 
 ```
 continuity/
-  cmd/continuity/        # CLI: discover → probe → score → rank
+  cmd/continuity/        # CLI: scan (sense) and serve (dashboard + API)
   internal/
     interfaces/          # Sprint 1 — discovery & classification
     telemetry/           # Sprint 2 — latency / jitter / loss / throughput
     scoring/             # Sprint 3 — weighted, explainable 0–100 score
+    policy/              # Sprint 4 — traffic classes + hysteresis controller
+    events/              # Sprint 4 — thread-safe event log
+    routing/             # Sprint 5 — DryRun / Linux route managers
+    simulator/           # Sprint 6 — synthetic bearers + tc/netem builders
+    api/                 # Sprint 7 — REST API + embedded dashboard
+    agent/               # control loop (live or simulated source)
     config/              # YAML-subset policy loader
-  configs/               # example policy
-  .github/workflows/     # CI: build, vet, gofmt, race tests
 ```
-
-This mirrors the module organisation in the product specification (§24); later
-sprints add `policy/`, `routing/`, `transport/`, `events/`, `api/` and
-`simulator/`.
 
 ## Configuration
 
-The agent runs on built-in defaults; an optional YAML file overrides them:
-
-```sh
-go run ./cmd/continuity --config configs/continuity.example.yaml
-```
-
-See [`configs/continuity.example.yaml`](configs/continuity.example.yaml). The
-loader parses a small, well-defined YAML subset (no third-party dependency); a
-full parser can be dropped in when richer policy documents are needed.
+Built-in defaults work out of the box; an optional YAML file overrides them (see
+[`configs/continuity.example.yaml`](configs/continuity.example.yaml)). The loader
+parses a small YAML subset with no third-party dependency.
 
 ## Testing
 
 ```sh
 make test      # go test ./... -race -cover
 make vet
-make fmt       # gofmt
+make fmt
 make build     # -> bin/continuity
 ```
 
+Every package is unit-tested, including the failover state machine
+(`internal/policy`) and an end-to-end failover-and-recovery run through the
+orchestrator over the simulator (`internal/agent`).
+
 ## Roadmap
 
-Sprints 1–3 (this repo) → policy engine (4) → automated Linux route failover (5)
-→ network-degradation simulator (6) → real-time dashboard (7) → hysteresis &
-recovery (8) → encrypted stable tunnel (9) → the 90-second demonstration (10).
-That completes **Continuity 0.1**; the product spec carries the roadmap through
-0.5 (design-partner MVP) to 2.0 (predictive resilience).
+Sprints 1–7 (this repo) ✓ → hysteresis tuning & recovery polish (8) → encrypted
+stable tunnel / session continuity (9) → the 90-second polished demonstration
+(10). That completes **Continuity 0.1**; the product spec carries the roadmap
+through 0.5 (design-partner MVP) to 2.0 (predictive resilience).
 
 ## Status & notes
 
+- Route changes default to **DryRun** (recorded, not applied). `serve --apply`
+  performs real Linux routing and requires `CAP_NET_ADMIN` (root).
+- `--sim` drives the pipeline from a simulator; the `tc/netem` builders in
+  `internal/simulator` impair real interfaces on a physical test bench.
 - Engineering targets (sub-3-second failover, etc.) are design goals, not yet
-  independently validated.
-- Throughput is currently link capacity read from sysfs; passive/active
-  measurement is future work (spec §7).
-- Latency/loss are measured via TCP-handshake probing (unprivileged, portable);
-  an ICMP prober can slot in behind the same interface where raw sockets are
-  permitted.
+  independently validated. Throughput is link capacity from sysfs; active
+  measurement is future work.
 
 ## License
 
 Proprietary — © 2026 Jegasec. All rights reserved. See [LICENSE](LICENSE).
-(If you later want this to be source-available, Apache-2.0 is a common choice.)
