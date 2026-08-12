@@ -1,0 +1,23 @@
+# JEGASEC Continuity — Edge Agent example policy
+#
+# The agent runs on built-in defaults; this file overrides them. Run with:
+#   go run ./cmd/continuity --config configs/continuity.example.yaml
+#
+# NOTE: the current loader supports this subset (node, profile, probe.*).
+# Per-profile weight overrides and full traffic-class policy arrive with the
+# policy engine (Sprint 4).
+
+node: vehicle-01
+
+# Scoring profile applied to link ranking:
+#   default | voice | video | telemetry | bulk
+profile: default
+
+probe:
+  # host:port targets used to measure each bearer (first lossless one wins)
+  targets:
+    - 1.1.1.1:443
+    - 8.8.8.8:443
+  count: 5           # probes per bearer per scan
+  interval_ms: 1000  # delay between probes within a bearer
+  timeout_ms: 1500   # per-probe connection timeout

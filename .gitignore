@@ -1,0 +1,19 @@
+# Build output
+/bin/
+/dist/
+/continuity
+*.exe
+*.test
+*.out
+coverage.*
+
+# Go workspace / vendor
+/vendor/
+go.work
+go.work.sum
+
+# Editors / OS
+.idea/
+.vscode/
+*.swp
+.DS_Store
