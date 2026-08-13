@@ -33,3 +33,11 @@ policy:
   degradation_hold: 2     # consecutive degraded cycles before a soft migrate
   recovery_hold: 2        # consecutive healthy cycles before failing back home
   flap_penalty_ms: 20000  # cooldown before a soft migration back onto a just-left bearer
+
+# Session-continuity overlay (spec §13). A stable, encrypted address that
+# applications bind to; the agent rebinds it onto whichever bearer is active, so
+# TCP/app sessions survive a failover instead of resetting.
+tunnel:
+  enabled: true          # set false to run without the overlay
+  overlay: 100.64.0.1    # stable address applications bind to (unchanged across failover)
+  sessions: 3            # application flows modelled as riding the overlay

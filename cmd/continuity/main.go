@@ -32,6 +32,7 @@ import (
 	"github.com/gobijega/continuity/internal/scoring"
 	"github.com/gobijega/continuity/internal/simulator"
 	"github.com/gobijega/continuity/internal/telemetry"
+	"github.com/gobijega/continuity/internal/tunnel"
 )
 
 // Version is overridable at build time via -ldflags "-X main.Version=...".
@@ -202,6 +203,7 @@ func serveMain(args []string) {
 	node := fs.String("node", "", "node name")
 	interval := fs.Duration("interval", time.Second, "control-loop interval")
 	apply := fs.Bool("apply", false, "apply real Linux route changes (needs root)")
+	noTunnel := fs.Bool("no-tunnel", false, "disable the session-continuity overlay")
 	cfgPath := fs.String("config", "", "path to a YAML config file (live mode)")
 	_ = fs.Parse(args)
 
@@ -230,6 +232,11 @@ func serveMain(args []string) {
 		router = routing.NewLinux()
 	}
 
+	var tun tunnel.Manager = tunnel.Disabled{}
+	if cfg.Tunnel.Enabled && !*noTunnel {
+		tun = tunnel.NewDryRun(cfg.Tunnel.Overlay, cfg.Tunnel.Sessions)
+	}
+
 	hyst := hysteresisFromConfig(cfg)
 	if *useSim && *cfgPath == "" {
 		// Snappier demo tuning when no explicit policy file is supplied, so the
@@ -240,7 +247,7 @@ func serveMain(args []string) {
 		}
 	}
 
-	a := agent.New(agent.Options{Node: cfg.Node, Profile: cfg.Profile, Source: src, Router: router, Hyst: hyst})
+	a := agent.New(agent.Options{Node: cfg.Node, Profile: cfg.Profile, Source: src, Router: router, Tunnel: tun, Hyst: hyst})
 
 	ctx, stop := signal.NotifyContext(context.Background(), os.Interrupt, syscall.SIGTERM)
 	defer stop()
@@ -255,7 +262,11 @@ func serveMain(args []string) {
 		_ = httpSrv.Shutdown(sh)
 	}()
 
-	fmt.Printf("continuity serve — node %s — http://%s  (sim=%v, apply=%v)\n", cfg.Node, *addr, *useSim, *apply)
+	overlayMsg := "off"
+	if st := tun.State(); st.Enabled {
+		overlayMsg = fmt.Sprintf("%s/%s", st.Overlay, st.Cipher)
+	}
+	fmt.Printf("continuity serve — node %s — http://%s  (sim=%v, apply=%v, overlay=%s)\n", cfg.Node, *addr, *useSim, *apply, overlayMsg)
 	if err := httpSrv.ListenAndServe(); err != nil && err != http.ErrServerClosed {
 		fmt.Fprintln(os.Stderr, "continuity: serve:", err)
 		os.Exit(1)

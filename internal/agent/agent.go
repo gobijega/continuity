@@ -17,6 +17,7 @@ import (
 	"github.com/gobijega/continuity/internal/routing"
 	"github.com/gobijega/continuity/internal/scoring"
 	"github.com/gobijega/continuity/internal/telemetry"
+	"github.com/gobijega/continuity/internal/tunnel"
 )
 
 // Reading is one bearer's raw sample for a cycle.
@@ -45,13 +46,14 @@ type BearerView struct {
 
 // Snapshot is an immutable view of the agent's state for the API/dashboard.
 type Snapshot struct {
-	Node    string         `json:"node"`
-	Profile string         `json:"profile"`
-	Status  string         `json:"status"` // RESILIENT | DEGRADED | CRITICAL
-	Active  string         `json:"active_interface"`
-	At      time.Time      `json:"at"`
-	Bearers []BearerView   `json:"bearers"`
-	Events  []events.Event `json:"events"`
+	Node       string         `json:"node"`
+	Profile    string         `json:"profile"`
+	Status     string         `json:"status"` // RESILIENT | DEGRADED | CRITICAL
+	Active     string         `json:"active_interface"`
+	At         time.Time      `json:"at"`
+	Bearers    []BearerView   `json:"bearers"`
+	Events     []events.Event `json:"events"`
+	Continuity *tunnel.State  `json:"continuity,omitempty"` // session-continuity overlay (Sprint 9)
 }
 
 // Agent runs the control loop and holds the latest snapshot.
@@ -65,6 +67,7 @@ type Agent struct {
 	source Source
 	ctrl   *policy.Controller
 	router routing.Manager
+	tunnel tunnel.Manager
 	log    *events.Log
 
 	prevState map[string]string
@@ -78,6 +81,7 @@ type Options struct {
 	Profile string
 	Source  Source
 	Router  routing.Manager
+	Tunnel  tunnel.Manager
 	Hyst    policy.Hysteresis
 	Thresh  scoring.Thresholds
 	Log     *events.Log
@@ -87,6 +91,9 @@ type Options struct {
 func New(o Options) *Agent {
 	if o.Router == nil {
 		o.Router = routing.NewDryRun()
+	}
+	if o.Tunnel == nil {
+		o.Tunnel = tunnel.NewDryRun(tunnel.DefaultOverlay, 3)
 	}
 	if o.Log == nil {
 		o.Log = events.NewLog(200)
@@ -112,6 +119,7 @@ func New(o Options) *Agent {
 		source:     o.Source,
 		ctrl:       policy.NewController(o.Hyst),
 		router:     o.Router,
+		tunnel:     o.Tunnel,
 		log:        o.Log,
 		prevState:  map[string]string{},
 	}
@@ -144,6 +152,15 @@ func (a *Agent) Tick(now time.Time) Snapshot {
 	if d.Action == policy.Migrate {
 		_ = a.router.Activate(d.To)
 		a.log.Add(events.Event{At: now, Node: a.node, Interface: d.To, Type: "MIGRATE", From: d.From, To: d.To, Reason: d.Reason})
+		// Move the encrypted overlay onto the new bearer. The security
+		// association is untouched, so application sessions ride through the
+		// failover; d.From == "" is the initial bind, which preserves nothing.
+		if err := a.tunnel.Rebind(d.To); err == nil && d.From != "" {
+			if ts := a.tunnel.State(); ts.Enabled {
+				a.log.Add(events.Event{At: now, Node: a.node, Interface: d.To, Type: "REBIND", From: d.From, To: d.To,
+					Reason: fmt.Sprintf("session continuity: %d session(s) preserved on %s", ts.Sessions, ts.Overlay)})
+			}
+		}
 	}
 	active := a.ctrl.Active()
 
@@ -164,13 +181,14 @@ func (a *Agent) Tick(now time.Time) Snapshot {
 	}
 
 	snap := Snapshot{
-		Node:    a.node,
-		Profile: a.profile,
-		Status:  status(active, availCount),
-		Active:  active,
-		At:      now,
-		Bearers: views,
-		Events:  a.log.Recent(12),
+		Node:       a.node,
+		Profile:    a.profile,
+		Status:     status(active, availCount),
+		Active:     active,
+		At:         now,
+		Bearers:    views,
+		Events:     a.log.Recent(12),
+		Continuity: continuityView(a.tunnel),
 	}
 	a.mu.Lock()
 	a.snap = snap
@@ -222,6 +240,19 @@ func (a *Agent) Snapshot() Snapshot {
 	a.mu.RLock()
 	defer a.mu.RUnlock()
 	return a.snap
+}
+
+// Continuity returns the current session-continuity (overlay tunnel) state.
+func (a *Agent) Continuity() tunnel.State { return a.tunnel.State() }
+
+// continuityView returns the manager's state as a pointer, or nil when session
+// continuity is disabled so the JSON omits it entirely.
+func continuityView(m tunnel.Manager) *tunnel.State {
+	st := m.State()
+	if !st.Enabled {
+		return nil
+	}
+	return &st
 }
 
 func status(active string, availCount int) string {

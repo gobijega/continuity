@@ -36,12 +36,22 @@ type Policy struct {
 	FlapPenalty       time.Duration // cooldown before a soft migration back onto a just-left bearer
 }
 
+// Tunnel configures the session-continuity overlay (spec §13, Sprint 9).
+// Enabled turns the encrypted overlay on; Overlay is the stable address
+// applications bind to; Sessions models how many flows ride it.
+type Tunnel struct {
+	Enabled  bool
+	Overlay  string
+	Sessions int
+}
+
 // Config is the agent's runtime configuration.
 type Config struct {
 	Node    string
 	Profile string
 	Probe   Probe
 	Policy  Policy
+	Tunnel  Tunnel
 }
 
 // Default returns the built-in configuration used when no file is supplied.
@@ -63,6 +73,11 @@ func Default() Config {
 			DegradationHold:   2,
 			RecoveryHold:      2,
 			FlapPenalty:       20 * time.Second,
+		},
+		Tunnel: Tunnel{
+			Enabled:  true,
+			Overlay:  "100.64.0.1",
+			Sessions: 3,
 		},
 	}
 }
@@ -113,6 +128,8 @@ func Load(path string) (Config, error) {
 				section = "probe"
 			case "policy":
 				section = "policy"
+			case "tunnel":
+				section = "tunnel"
 			default:
 				section = "" // unknown top-level block: skip its children
 			}
@@ -156,6 +173,18 @@ func Load(path string) (Config, error) {
 				cfg.Policy.FlapPenalty = msDefault(val, cfg.Policy.FlapPenalty)
 			}
 		}
+
+		if section == "tunnel" {
+			inTargets = false
+			switch key {
+			case "enabled":
+				cfg.Tunnel.Enabled = boolDefault(val, cfg.Tunnel.Enabled)
+			case "overlay":
+				cfg.Tunnel.Overlay = unquote(val)
+			case "sessions":
+				cfg.Tunnel.Sessions = atoiDefault(val, cfg.Tunnel.Sessions)
+			}
+		}
 	}
 
 	cfg.normalize()
@@ -180,6 +209,12 @@ func (c *Config) normalize() {
 	}
 	if len(c.Probe.Targets) == 0 {
 		c.Probe.Targets = []string{"1.1.1.1:443", "8.8.8.8:443"}
+	}
+	if strings.TrimSpace(c.Tunnel.Overlay) == "" {
+		c.Tunnel.Overlay = "100.64.0.1"
+	}
+	if c.Tunnel.Sessions < 1 {
+		c.Tunnel.Sessions = 1
 	}
 	c.normalizePolicy()
 }
@@ -240,6 +275,16 @@ func atoiDefault(s string, def int) int {
 func floatDefault(s string, def float64) float64 {
 	if v, err := strconv.ParseFloat(strings.TrimSpace(s), 64); err == nil {
 		return v
+	}
+	return def
+}
+
+func boolDefault(s string, def bool) bool {
+	switch strings.ToLower(strings.TrimSpace(s)) {
+	case "true", "yes", "on", "1":
+		return true
+	case "false", "no", "off", "0":
+		return false
 	}
 	return def
 }

@@ -63,6 +63,26 @@ func TestNodeAndInterface(t *testing.T) {
 	}
 }
 
+func TestTunnelEndpoint(t *testing.T) {
+	s, _ := newTestServer(t)
+	rec := httptest.NewRecorder()
+	s.Handler().ServeHTTP(rec, httptest.NewRequest("GET", "/api/v1/tunnel", nil))
+	if rec.Code != http.StatusOK {
+		t.Fatalf("tunnel status = %d, want 200", rec.Code)
+	}
+	var resp struct {
+		Enabled bool   `json:"enabled"`
+		Overlay string `json:"overlay"`
+		Cipher  string `json:"cipher"`
+	}
+	if err := json.Unmarshal(rec.Body.Bytes(), &resp); err != nil {
+		t.Fatal(err)
+	}
+	if !resp.Enabled || resp.Overlay == "" || resp.Cipher == "" {
+		t.Fatalf("unexpected tunnel state: %+v", resp)
+	}
+}
+
 func TestSimulatorEndpoint(t *testing.T) {
 	s, a := newTestServer(t)
 

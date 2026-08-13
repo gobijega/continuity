@@ -101,6 +101,41 @@ policy:
 	}
 }
 
+func TestLoadTunnelSection(t *testing.T) {
+	yaml := `node: vehicle-01
+
+tunnel:
+  enabled: false
+  overlay: 100.100.0.7
+  sessions: 5
+`
+	dir := t.TempDir()
+	path := filepath.Join(dir, "continuity.yaml")
+	if err := os.WriteFile(path, []byte(yaml), 0o600); err != nil {
+		t.Fatal(err)
+	}
+	c, err := Load(path)
+	if err != nil {
+		t.Fatalf("Load() error: %v", err)
+	}
+	if c.Tunnel.Enabled {
+		t.Errorf("Tunnel.Enabled = true, want false")
+	}
+	if c.Tunnel.Overlay != "100.100.0.7" {
+		t.Errorf("Tunnel.Overlay = %q, want 100.100.0.7", c.Tunnel.Overlay)
+	}
+	if c.Tunnel.Sessions != 5 {
+		t.Errorf("Tunnel.Sessions = %d, want 5", c.Tunnel.Sessions)
+	}
+}
+
+func TestTunnelDefaultsWhenAbsent(t *testing.T) {
+	c := Default()
+	if !c.Tunnel.Enabled || c.Tunnel.Overlay == "" || c.Tunnel.Sessions < 1 {
+		t.Fatalf("default tunnel = %+v, want enabled with an overlay and sessions>=1", c.Tunnel)
+	}
+}
+
 func TestPolicyDefaultsWhenAbsent(t *testing.T) {
 	// A file with no policy block must leave the built-in policy defaults intact.
 	yaml := "node: vehicle-01\nprofile: voice\n"

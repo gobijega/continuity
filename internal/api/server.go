@@ -43,6 +43,7 @@ func (s *Server) routes() {
 	s.mux.HandleFunc("GET /api/v1/interfaces/{name}", s.handleInterface)
 	s.mux.HandleFunc("GET /api/v1/events", s.handleEvents)
 	s.mux.HandleFunc("GET /api/v1/policy", s.handlePolicy)
+	s.mux.HandleFunc("GET /api/v1/tunnel", s.handleTunnel)
 	s.mux.HandleFunc("POST /api/v1/simulator/{name}/{action}", s.handleSimulator)
 }
 
@@ -102,6 +103,13 @@ func (s *Server) handlePolicy(w http.ResponseWriter, r *http.Request) {
 		classes[string(c)] = policy.ClassProfile(c)
 	}
 	writeJSON(w, http.StatusOK, map[string]any{"profile": snap.Profile, "classes": classes})
+}
+
+// handleTunnel reports the session-continuity overlay: its stable address, the
+// bearer it currently egresses through, and how many failovers it has ridden
+// out without dropping the session (spec §13, Sprint 9).
+func (s *Server) handleTunnel(w http.ResponseWriter, r *http.Request) {
+	writeJSON(w, http.StatusOK, s.agent.Continuity())
 }
 
 // handleSimulator applies a demo impairment. Actions: degrade | outage |
