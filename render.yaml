@@ -1,0 +1,15 @@
+# Render Blueprint — JEGASEC Continuity live demo (dashboard + scripted simulation).
+# Deploy: Render dashboard → New + → Blueprint → connect the gobijega/continuity repo.
+# The service builds the Go binary and runs the auto-looping 90-second demo, serving
+# the dashboard at / and the REST API under /api/v1/*.
+services:
+  - type: web
+    name: jscontinuity
+    runtime: go
+    plan: free              # free spins down after ~15 min idle (≈30s cold start on the next
+                            # visit). Change to "starter" in the dashboard for an always-on demo.
+    region: oregon          # pick the region nearest your visitors
+    buildCommand: go build -o app ./cmd/continuity
+    startCommand: ./app serve --demo --addr 0.0.0.0:$PORT
+    healthCheckPath: /api/v1/state
+    autoDeploy: true        # redeploy automatically on every push to the default branch
