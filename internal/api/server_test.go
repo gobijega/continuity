@@ -8,6 +8,7 @@ import (
 	"time"
 
 	"github.com/gobijega/continuity/internal/agent"
+	"github.com/gobijega/continuity/internal/demo"
 	"github.com/gobijega/continuity/internal/simulator"
 )
 
@@ -80,6 +81,43 @@ func TestTunnelEndpoint(t *testing.T) {
 	}
 	if !resp.Enabled || resp.Overlay == "" || resp.Cipher == "" {
 		t.Fatalf("unexpected tunnel state: %+v", resp)
+	}
+}
+
+func TestDemoEndpoint(t *testing.T) {
+	s, _ := newTestServer(t)
+
+	// No demo attached -> idle.
+	rec := httptest.NewRecorder()
+	s.Handler().ServeHTTP(rec, httptest.NewRequest("GET", "/api/v1/demo", nil))
+	if rec.Code != http.StatusOK {
+		t.Fatalf("demo status = %d, want 200", rec.Code)
+	}
+	var idle struct {
+		Running bool `json:"running"`
+	}
+	if err := json.Unmarshal(rec.Body.Bytes(), &idle); err != nil {
+		t.Fatal(err)
+	}
+	if idle.Running {
+		t.Error("demo should be idle before SetDemo")
+	}
+
+	// Attach a running demo; the endpoint should reflect it.
+	r := demo.New(simulator.NewDemo())
+	r.Start(time.Unix(1700000000, 0))
+	s.SetDemo(r)
+	rec = httptest.NewRecorder()
+	s.Handler().ServeHTTP(rec, httptest.NewRequest("GET", "/api/v1/demo", nil))
+	var st struct {
+		Running bool `json:"running"`
+		Steps   int  `json:"steps"`
+	}
+	if err := json.Unmarshal(rec.Body.Bytes(), &st); err != nil {
+		t.Fatal(err)
+	}
+	if !st.Running || st.Steps == 0 {
+		t.Fatalf("expected a running demo with steps, got %+v", st)
 	}
 }
 

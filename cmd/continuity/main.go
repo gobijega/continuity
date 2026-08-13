@@ -26,6 +26,7 @@ import (
 	"github.com/gobijega/continuity/internal/agent"
 	"github.com/gobijega/continuity/internal/api"
 	"github.com/gobijega/continuity/internal/config"
+	"github.com/gobijega/continuity/internal/demo"
 	"github.com/gobijega/continuity/internal/interfaces"
 	"github.com/gobijega/continuity/internal/policy"
 	"github.com/gobijega/continuity/internal/routing"
@@ -199,6 +200,7 @@ func serveMain(args []string) {
 	fs := flag.NewFlagSet("serve", flag.ExitOnError)
 	addr := fs.String("addr", "127.0.0.1:8080", "dashboard/API listen address")
 	useSim := fs.Bool("sim", false, "run with the built-in simulator instead of live interfaces")
+	runDemo := fs.Bool("demo", false, "auto-run the scripted 90-second demonstration (implies --sim)")
 	profile := fs.String("profile", "", "scoring profile")
 	node := fs.String("node", "", "node name")
 	interval := fs.Duration("interval", time.Second, "control-loop interval")
@@ -206,6 +208,10 @@ func serveMain(args []string) {
 	noTunnel := fs.Bool("no-tunnel", false, "disable the session-continuity overlay")
 	cfgPath := fs.String("config", "", "path to a YAML config file (live mode)")
 	_ = fs.Parse(args)
+
+	if *runDemo {
+		*useSim = true // the scripted demo drives the simulator
+	}
 
 	cfg := loadConfig(*cfgPath)
 	if *node != "" {
@@ -251,9 +257,16 @@ func serveMain(args []string) {
 
 	ctx, stop := signal.NotifyContext(context.Background(), os.Interrupt, syscall.SIGTERM)
 	defer stop()
-	go a.Run(ctx, *interval)
 
 	srv := api.New(a, sim)
+
+	if *runDemo && sim != nil {
+		runner := demo.New(sim)
+		srv.SetDemo(runner)
+		go runDemoLoop(ctx, a, runner, *interval)
+	} else {
+		go a.Run(ctx, *interval)
+	}
 	httpSrv := &http.Server{Addr: *addr, Handler: srv.Handler()}
 	go func() {
 		<-ctx.Done()
@@ -266,7 +279,8 @@ func serveMain(args []string) {
 	if st := tun.State(); st.Enabled {
 		overlayMsg = fmt.Sprintf("%s/%s", st.Overlay, st.Cipher)
 	}
-	fmt.Printf("continuity serve — node %s — http://%s  (sim=%v, apply=%v, overlay=%s)\n", cfg.Node, *addr, *useSim, *apply, overlayMsg)
+	fmt.Printf("continuity serve — node %s — http://%s  (sim=%v, demo=%v, apply=%v, overlay=%s)\n",
+		cfg.Node, *addr, *useSim, *runDemo, *apply, overlayMsg)
 	if err := httpSrv.ListenAndServe(); err != nil && err != http.ErrServerClosed {
 		fmt.Fprintln(os.Stderr, "continuity: serve:", err)
 		os.Exit(1)
@@ -286,6 +300,27 @@ func loadConfig(path string) config.Config {
 		cfg = c
 	}
 	return cfg
+}
+
+// runDemoLoop drives the scripted demonstration and the control loop on one
+// clock (Sprint 10): each tick advances the demo — which shapes the simulator —
+// then ticks the agent, so the dashboard shows the real control loop responding
+// to the scripted conditions rather than any staged output.
+func runDemoLoop(ctx context.Context, a *agent.Agent, r *demo.Runner, interval time.Duration) {
+	now := time.Now()
+	r.Start(now)
+	a.Tick(now)
+	tk := time.NewTicker(interval)
+	defer tk.Stop()
+	for {
+		select {
+		case <-ctx.Done():
+			return
+		case t := <-tk.C:
+			r.Advance(t)
+			a.Tick(t)
+		}
+	}
 }
 
 // hysteresisFromConfig maps the config's plain-data policy block onto the

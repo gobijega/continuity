@@ -65,6 +65,20 @@
   .ev .ttxt{font-size:12.5px}
   .ev .ttxt b{font-weight:700}
   .foot{color:var(--muted);font-size:11px;margin-top:18px;letter-spacing:.4px}
+
+  /* Scripted-demo narrative banner (Sprint 10) */
+  .demobar{background:linear-gradient(90deg,var(--panel),var(--panel2));border:1px solid var(--hair);
+    border-left:3px solid var(--green);border-radius:12px;padding:13px 18px;margin-bottom:16px}
+  .demo-cap{font-size:14px;font-weight:600;display:flex;align-items:center;gap:10px;line-height:1.35}
+  .demo-badge{background:var(--green);color:var(--bg);font-size:10px;font-weight:800;letter-spacing:1.5px;
+    padding:3px 8px;border-radius:5px;flex:none}
+  .demo-prog{height:5px;border-radius:3px;background:var(--panel2);overflow:hidden;margin-top:10px}
+  .demo-prog > i{display:block;height:100%;background:var(--green);width:0;transition:width .5s linear}
+  .demo-meta{color:var(--muted);font-size:11px;margin-top:7px;letter-spacing:.4px;font-variant-numeric:tabular-nums}
+
+  /* Session-continuity tile */
+  .cont .lab{color:var(--green)}
+  .cont .val{font-size:20px;font-variant-numeric:tabular-nums}
 </style>
 </head>
 <body>
@@ -73,6 +87,12 @@
     <div class="brand">JEGASEC CONTINUITY</div>
   </div>
   <div class="sub" id="sub">edge resilience console</div>
+
+  <div class="demobar" id="demobar" style="display:none">
+    <div class="demo-cap"><span class="demo-badge">DEMO</span><span id="demoCap"></span></div>
+    <div class="demo-prog"><i id="demoProg"></i></div>
+    <div class="demo-meta" id="demoMeta"></div>
+  </div>
 
   <div class="topbar">
     <div class="status" id="status">
@@ -83,6 +103,11 @@
       <div class="lab">ACTIVE PATH</div>
       <div class="val serif" id="activeVal">—</div>
       <div class="meta" id="activeMeta"></div>
+    </div>
+    <div class="active cont" id="contTile" style="display:none">
+      <div class="lab">SESSION CONTINUITY</div>
+      <div class="val serif" id="contOverlay">—</div>
+      <div class="meta" id="contMeta"></div>
     </div>
   </div>
 
@@ -108,7 +133,7 @@
 const C={green:'#2FD08A',amber:'#F6B23C',red:'#F26D6D',cyan:'#35C6E0',muted:'#70819E',sec:'#AAB8D0'};
 function scoreColor(s){ if(s>=70) return C.green; if(s>=40) return C.amber; return C.red; }
 function statusColor(s){ return s==='RESILIENT'?C.green : s==='DEGRADED'?C.amber : C.red; }
-function evColor(t){ return {MIGRATE:C.cyan,DEGRADED:C.amber,LINK_DOWN:C.red,HEALTHY:C.green}[t]||C.muted; }
+function evColor(t){ return {MIGRATE:C.cyan,REBIND:C.green,DEGRADED:C.amber,LINK_DOWN:C.red,HEALTHY:C.green}[t]||C.muted; }
 function hhmmss(iso){ try{const d=new Date(iso);return d.toTimeString().slice(0,8);}catch(e){return '';} }
 function esc(x){ return (x==null?'':String(x)).replace(/[&<>]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;'}[c])); }
 
@@ -130,7 +155,29 @@ function render(st){
   document.getElementById('activeVal').textContent = (st.active_interface||'—').toUpperCase();
   document.getElementById('activeMeta').textContent = act? `${Math.round(act.metrics.latency_ms)} ms · ${act.metrics.loss_pct.toFixed(1)}% loss` : '';
 
-  document.getElementById('controls').style.display = st.sim ? 'flex' : 'none';
+  // Session-continuity overlay tile (Sprint 9).
+  const c=st.continuity, ct=document.getElementById('contTile');
+  if(c && c.enabled){
+    ct.style.display='block';
+    document.getElementById('contOverlay').textContent = c.overlay;
+    document.getElementById('contMeta').innerHTML =
+      `via <b style="color:${C.sec}">${esc((c.endpoint||'—').toUpperCase())}</b> · ${esc(c.cipher)} · ${c.rebinds} rebind${c.rebinds===1?'':'s'}`;
+  } else { ct.style.display='none'; }
+
+  // Scripted-demo narrative banner (Sprint 10).
+  const dm=st.demo, db=document.getElementById('demobar');
+  const demoOn = !!(dm && dm.running);
+  if(demoOn){
+    db.style.display='block';
+    document.getElementById('demoCap').textContent = dm.caption||'';
+    const pct = dm.total_s ? Math.max(0,Math.min(100, dm.elapsed_s/dm.total_s*100)) : 0;
+    document.getElementById('demoProg').style.width = pct+'%';
+    document.getElementById('demoMeta').textContent =
+      `beat ${dm.step}/${dm.steps} · ${Math.round(dm.elapsed_s)}s / ${Math.round(dm.total_s)}s · cycle ${(dm.loops||0)+1}`;
+  } else { db.style.display='none'; }
+
+  // Manual controls: shown in sim mode, hidden while the scripted demo drives.
+  document.getElementById('controls').style.display = (st.sim && !demoOn) ? 'flex' : 'none';
 
   const cards=document.getElementById('cards'); cards.innerHTML='';
   (st.bearers||[]).forEach(b=>{
@@ -152,8 +199,9 @@ function render(st){
   const evs=document.getElementById('events'); evs.innerHTML='';
   (st.events||[]).forEach(e=>{
     const el=document.createElement('div'); el.className='ev';
-    const txt = e.type==='MIGRATE'
-      ? `<b style="color:${C.cyan}">${esc(e.from||'').toUpperCase()} → ${esc(e.to||'').toUpperCase()}</b> — ${esc(e.reason)}`
+    const flow = (e.type==='MIGRATE'||e.type==='REBIND');
+    const txt = flow
+      ? `<b style="color:${e.type==='REBIND'?C.green:C.cyan}">${esc((e.from||'').toUpperCase())} → ${esc((e.to||'').toUpperCase())}</b> — ${esc(e.reason)}`
       : `<b>${esc((e.interface||'').toUpperCase())}</b> ${esc(e.type.replace('_',' ').toLowerCase())} — ${esc(e.reason)}`;
     el.innerHTML=`<div class="tdot" style="background:${evColor(e.type)}"></div>
       <div class="ttime">${hhmmss(e.at)}</div><div class="ttxt">${txt}</div>`;

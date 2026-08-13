@@ -10,6 +10,7 @@ import (
 	"strings"
 
 	"github.com/gobijega/continuity/internal/agent"
+	"github.com/gobijega/continuity/internal/demo"
 	"github.com/gobijega/continuity/internal/policy"
 	"github.com/gobijega/continuity/internal/simulator"
 )
@@ -17,10 +18,17 @@ import (
 //go:embed dashboard.html
 var dashboardHTML []byte
 
+// demoProvider is the observable slice of the scripted demonstration the API
+// surfaces. It is satisfied by *demo.Runner.
+type demoProvider interface {
+	State() demo.State
+}
+
 // Server exposes the agent state and (in demo mode) simulator controls.
 type Server struct {
 	agent *agent.Agent
 	sim   *simulator.Sim // nil in live mode
+	demo  demoProvider   // nil unless the scripted demo is running
 	mux   *http.ServeMux
 }
 
@@ -31,6 +39,10 @@ func New(a *agent.Agent, sim *simulator.Sim) *Server {
 	s.routes()
 	return s
 }
+
+// SetDemo attaches a scripted-demo provider so its narrative is published on
+// /api/v1/state and /api/v1/demo.
+func (s *Server) SetDemo(d demoProvider) { s.demo = d }
 
 // Handler returns the HTTP handler.
 func (s *Server) Handler() http.Handler { return s.mux }
@@ -44,6 +56,7 @@ func (s *Server) routes() {
 	s.mux.HandleFunc("GET /api/v1/events", s.handleEvents)
 	s.mux.HandleFunc("GET /api/v1/policy", s.handlePolicy)
 	s.mux.HandleFunc("GET /api/v1/tunnel", s.handleTunnel)
+	s.mux.HandleFunc("GET /api/v1/demo", s.handleDemo)
 	s.mux.HandleFunc("POST /api/v1/simulator/{name}/{action}", s.handleSimulator)
 }
 
@@ -57,15 +70,21 @@ func (s *Server) handleDashboard(w http.ResponseWriter, r *http.Request) {
 }
 
 // stateResp is the full snapshot plus a flag telling the dashboard whether the
-// simulator controls are live.
+// simulator controls are live and, when running, the scripted-demo narrative.
 type stateResp struct {
 	agent.Snapshot
-	Sim bool `json:"sim"`
+	Sim  bool        `json:"sim"`
+	Demo *demo.State `json:"demo,omitempty"`
 }
 
 func (s *Server) handleState(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Cache-Control", "no-store")
-	writeJSON(w, http.StatusOK, stateResp{Snapshot: s.agent.Snapshot(), Sim: s.sim != nil})
+	resp := stateResp{Snapshot: s.agent.Snapshot(), Sim: s.sim != nil}
+	if s.demo != nil {
+		d := s.demo.State()
+		resp.Demo = &d
+	}
+	writeJSON(w, http.StatusOK, resp)
 }
 
 func (s *Server) handleNode(w http.ResponseWriter, r *http.Request) {
@@ -110,6 +129,16 @@ func (s *Server) handlePolicy(w http.ResponseWriter, r *http.Request) {
 // out without dropping the session (spec §13, Sprint 9).
 func (s *Server) handleTunnel(w http.ResponseWriter, r *http.Request) {
 	writeJSON(w, http.StatusOK, s.agent.Continuity())
+}
+
+// handleDemo reports the scripted-demonstration narrative (Sprint 10), or an
+// idle state when no demo is attached.
+func (s *Server) handleDemo(w http.ResponseWriter, r *http.Request) {
+	if s.demo == nil {
+		writeJSON(w, http.StatusOK, demo.State{Running: false})
+		return
+	}
+	writeJSON(w, http.StatusOK, s.demo.State())
 }
 
 // handleSimulator applies a demo impairment. Actions: degrade | outage |
