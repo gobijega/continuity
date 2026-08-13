@@ -6,11 +6,13 @@ Continuity is edge-deployed software that maintains application connectivity
 across multiple communications bearers — cellular, satellite, radio, Wi-Fi and
 wired — when individual links become congested, degraded, jammed or unavailable.
 
-This repository is the **Continuity Edge Agent**. It now covers **Sprints 1–7**
-of the 0.1 demonstrator: interface discovery, link telemetry, scoring, the
-policy engine with hysteresis, automated failover, a degradation simulator, and
-a live web dashboard. It is hardware-agnostic, runs on standard Linux, has
-**zero external dependencies**, and needs no cloud connectivity.
+This repository is the **Continuity Edge Agent**. It covers the complete
+**Continuity 0.1** demonstrator (Sprints 1–10): interface discovery, link
+telemetry, scoring, the policy engine with tuned hysteresis and anti-flap
+recovery, automated failover, an encrypted stable-overlay session-continuity
+layer, a degradation simulator, a scripted 90-second demonstration, and a live
+web dashboard. It is hardware-agnostic, runs on standard Linux, has **zero
+external dependencies**, and needs no cloud connectivity.
 
 ![Continuity dashboard](docs/dashboard.png)
 
@@ -20,6 +22,15 @@ failed over 5G → SATCOM and logged the decision, staying RESILIENT throughout.
 ## Try the demo (no root, no radios)
 
 Requires Go 1.24+.
+
+```sh
+go run ./cmd/continuity serve --demo   # auto-runs the scripted 90-second showcase
+# open http://127.0.0.1:8080 and watch it fail over and recover on its own
+```
+
+`--demo` drives a repeatable ~90-second story — 5G congestion, failover to
+SATCOM with session continuity, recovery and fail-back — while the agent reacts
+autonomously and the dashboard narrates each beat. For hands-on control instead:
 
 ```sh
 go run ./cmd/continuity serve --sim
@@ -61,7 +72,10 @@ JEGASEC Continuity  ·  node vehicle-01  ·  profile default
    (`internal/policy`).
 5. **Act** by making the chosen bearer the active route (`internal/routing`;
    DryRun by default, real Linux routing with `--apply`).
-6. **Observe** through an event log, REST API and dashboard (`internal/events`,
+6. **Preserve** application sessions across the switch: a stable, encrypted
+   overlay rebinds onto the new bearer so TCP/app sessions never see the
+   failover (`internal/tunnel`).
+7. **Observe** through an event log, REST API and dashboard (`internal/events`,
    `internal/api`).
 
 The `internal/agent` package is the control loop tying these together over a
@@ -77,6 +91,8 @@ pluggable live-or-simulated source.
 | `GET /api/v1/interfaces/{name}` | One bearer |
 | `GET /api/v1/events` | Recent decision / state-change events |
 | `GET /api/v1/policy` | Active profile and traffic-class → profile map |
+| `GET /api/v1/tunnel` | Session-continuity overlay: address, active endpoint, cipher, rebinds |
+| `GET /api/v1/demo` | Scripted-demonstration narrative and progress (demo mode) |
 | `POST /api/v1/simulator/{name}/{degrade\|outage\|restore}` | Demo controls (sim mode) |
 
 ## Project layout
@@ -88,19 +104,23 @@ continuity/
     interfaces/          # Sprint 1 — discovery & classification
     telemetry/           # Sprint 2 — latency / jitter / loss / throughput
     scoring/             # Sprint 3 — weighted, explainable 0–100 score
-    policy/              # Sprint 4 — traffic classes + hysteresis controller
+    policy/              # Sprints 4 & 8 — traffic classes + tuned hysteresis controller
     events/              # Sprint 4 — thread-safe event log
     routing/             # Sprint 5 — DryRun / Linux route managers
     simulator/           # Sprint 6 — synthetic bearers + tc/netem builders
     api/                 # Sprint 7 — REST API + embedded dashboard
+    tunnel/              # Sprint 9 — encrypted stable-overlay session continuity
+    demo/                # Sprint 10 — scripted 90-second demonstration
     agent/               # control loop (live or simulated source)
-    config/              # YAML-subset policy loader
+    config/              # YAML-subset loader (node, profile, probe, policy, tunnel)
 ```
 
 ## Configuration
 
-Built-in defaults work out of the box; an optional YAML file overrides them (see
-[`configs/continuity.example.yaml`](configs/continuity.example.yaml)). The loader
+Built-in defaults work out of the box; an optional YAML file overrides them —
+node, scoring profile, probe targets, the failover hysteresis (`policy:`) and
+the session-continuity overlay (`tunnel:`); see
+[`configs/continuity.example.yaml`](configs/continuity.example.yaml). The loader
 parses a small YAML subset with no third-party dependency.
 
 ## Testing
@@ -112,16 +132,19 @@ make fmt
 make build     # -> bin/continuity
 ```
 
-Every package is unit-tested, including the failover state machine
-(`internal/policy`) and an end-to-end failover-and-recovery run through the
+Every package is unit-tested, including the failover state machine and its
+anti-flap tuning (`internal/policy`), the encrypted session-continuity handshake
+and rebind (`internal/tunnel`), the scripted demonstration runner
+(`internal/demo`), and an end-to-end failover-and-recovery run through the
 orchestrator over the simulator (`internal/agent`).
 
 ## Roadmap
 
-Sprints 1–7 (this repo) ✓ → hysteresis tuning & recovery polish (8) → encrypted
-stable tunnel / session continuity (9) → the 90-second polished demonstration
-(10). That completes **Continuity 0.1**; the product spec carries the roadmap
-through 0.5 (design-partner MVP) to 2.0 (predictive resilience).
+Sprints 1–10 — **Continuity 0.1 complete** ✓: sensing core (1–3), policy engine
+and failover (4–5), simulator and dashboard (6–7), tuned hysteresis with
+anti-flap recovery (8), encrypted stable-overlay session continuity (9), and the
+scripted 90-second demonstration (10). From here the product spec carries the
+roadmap through 0.5 (design-partner MVP) to 2.0 (predictive resilience).
 
 ## Status & notes
 
