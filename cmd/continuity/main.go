@@ -230,9 +230,14 @@ func serveMain(args []string) {
 		router = routing.NewLinux()
 	}
 
-	hyst := policy.DefaultHysteresis()
-	if *useSim {
-		hyst = policy.Hysteresis{MinImprovement: 12, FailureThreshold: 35, RecoveryThreshold: 60, MinDwell: 3 * time.Second, DegradationHold: 2}
+	hyst := hysteresisFromConfig(cfg)
+	if *useSim && *cfgPath == "" {
+		// Snappier demo tuning when no explicit policy file is supplied, so the
+		// dashboard shows failover and fail-back within a short demonstration.
+		hyst = policy.Hysteresis{
+			MinImprovement: 12, FailureThreshold: 35, RecoveryThreshold: 60,
+			MinDwell: 3 * time.Second, DegradationHold: 2, RecoveryHold: 2, FlapPenalty: 6 * time.Second,
+		}
 	}
 
 	a := agent.New(agent.Options{Node: cfg.Node, Profile: cfg.Profile, Source: src, Router: router, Hyst: hyst})
@@ -270,6 +275,21 @@ func loadConfig(path string) config.Config {
 		cfg = c
 	}
 	return cfg
+}
+
+// hysteresisFromConfig maps the config's plain-data policy block onto the
+// controller's hysteresis parameters (Sprint 8: tunable failover behaviour).
+func hysteresisFromConfig(cfg config.Config) policy.Hysteresis {
+	p := cfg.Policy
+	return policy.Hysteresis{
+		MinImprovement:    p.MinImprovement,
+		FailureThreshold:  p.FailureThreshold,
+		RecoveryThreshold: p.RecoveryThreshold,
+		MinDwell:          p.MinDwell,
+		DegradationHold:   p.DegradationHold,
+		RecoveryHold:      p.RecoveryHold,
+		FlapPenalty:       p.FlapPenalty,
+	}
 }
 
 // costScore reflects that metered bearers (cellular) are less desirable for

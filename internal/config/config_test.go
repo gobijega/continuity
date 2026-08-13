@@ -65,3 +65,56 @@ func TestLoadMissingFile(t *testing.T) {
 		t.Error("expected an error loading a missing file")
 	}
 }
+
+func TestLoadPolicySection(t *testing.T) {
+	yaml := `node: vehicle-01
+
+policy:
+  min_improvement: 12
+  failure_threshold: 35
+  recovery_threshold: 60
+  min_dwell_ms: 3000
+  degradation_hold: 3
+  recovery_hold: 4
+  flap_penalty_ms: 8000
+`
+	dir := t.TempDir()
+	path := filepath.Join(dir, "continuity.yaml")
+	if err := os.WriteFile(path, []byte(yaml), 0o600); err != nil {
+		t.Fatal(err)
+	}
+	c, err := Load(path)
+	if err != nil {
+		t.Fatalf("Load() error: %v", err)
+	}
+	if c.Policy.MinImprovement != 12 || c.Policy.FailureThreshold != 35 || c.Policy.RecoveryThreshold != 60 {
+		t.Errorf("thresholds = %+v, want 12/35/60", c.Policy)
+	}
+	if c.Policy.MinDwell != 3*time.Second {
+		t.Errorf("MinDwell = %v, want 3s", c.Policy.MinDwell)
+	}
+	if c.Policy.DegradationHold != 3 || c.Policy.RecoveryHold != 4 {
+		t.Errorf("holds = %d/%d, want 3/4", c.Policy.DegradationHold, c.Policy.RecoveryHold)
+	}
+	if c.Policy.FlapPenalty != 8*time.Second {
+		t.Errorf("FlapPenalty = %v, want 8s", c.Policy.FlapPenalty)
+	}
+}
+
+func TestPolicyDefaultsWhenAbsent(t *testing.T) {
+	// A file with no policy block must leave the built-in policy defaults intact.
+	yaml := "node: vehicle-01\nprofile: voice\n"
+	dir := t.TempDir()
+	path := filepath.Join(dir, "continuity.yaml")
+	if err := os.WriteFile(path, []byte(yaml), 0o600); err != nil {
+		t.Fatal(err)
+	}
+	c, err := Load(path)
+	if err != nil {
+		t.Fatalf("Load() error: %v", err)
+	}
+	def := Default().Policy
+	if c.Policy != def {
+		t.Errorf("Policy = %+v, want defaults %+v", c.Policy, def)
+	}
+}

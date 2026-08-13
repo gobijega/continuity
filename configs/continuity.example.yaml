@@ -3,9 +3,9 @@
 # The agent runs on built-in defaults; this file overrides them. Run with:
 #   go run ./cmd/continuity --config configs/continuity.example.yaml
 #
-# NOTE: the current loader supports this subset (node, profile, probe.*).
-# Per-profile weight overrides and full traffic-class policy arrive with the
-# policy engine (Sprint 4).
+# NOTE: the loader supports this subset — node, profile, probe.* and policy.*
+# (the failover hysteresis, Sprint 8). Per-profile weight overrides and full
+# traffic-class policy documents arrive in a later sprint.
 
 node: vehicle-01
 
@@ -21,3 +21,15 @@ probe:
   count: 5           # probes per bearer per scan
   interval_ms: 1000  # delay between probes within a bearer
   timeout_ms: 1500   # per-probe connection timeout
+
+# Failover controller tuning (spec §9). Every field is optional; anything you
+# omit keeps its built-in default. These govern how eagerly the agent switches
+# bearers and how firmly it resists flapping.
+policy:
+  min_improvement: 15     # a rival must beat the active bearer by this many points
+  failure_threshold: 30   # active score below this is "urgent" — dwell/penalty waived
+  recovery_threshold: 50  # preferred bearer at/above this counts as recovered
+  min_dwell_ms: 10000     # minimum time on a bearer before another switch
+  degradation_hold: 2     # consecutive degraded cycles before a soft migrate
+  recovery_hold: 2        # consecutive healthy cycles before failing back home
+  flap_penalty_ms: 20000  # cooldown before a soft migration back onto a just-left bearer

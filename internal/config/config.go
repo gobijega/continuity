@@ -23,11 +23,25 @@ type Probe struct {
 	Timeout  time.Duration
 }
 
+// Policy holds the failover controller's hysteresis parameters (spec §9). It
+// mirrors policy.Hysteresis as plain data so the config package stays a
+// dependency-free leaf; the command layer maps it onto the controller.
+type Policy struct {
+	MinImprovement    float64       // candidate must beat the active bearer by this many points
+	FailureThreshold  float64       // active below this is "urgent" (dwell/penalty waived)
+	RecoveryThreshold float64       // preferred at/above this counts as recovered
+	MinDwell          time.Duration // minimum time on a bearer before switching again
+	DegradationHold   int           // consecutive degraded cycles before a soft migrate
+	RecoveryHold      int           // consecutive recovered cycles before failing back home
+	FlapPenalty       time.Duration // cooldown before a soft migration back onto a just-left bearer
+}
+
 // Config is the agent's runtime configuration.
 type Config struct {
 	Node    string
 	Profile string
 	Probe   Probe
+	Policy  Policy
 }
 
 // Default returns the built-in configuration used when no file is supplied.
@@ -40,6 +54,15 @@ func Default() Config {
 			Count:    5,
 			Interval: time.Second,
 			Timeout:  1500 * time.Millisecond,
+		},
+		Policy: Policy{
+			MinImprovement:    15,
+			FailureThreshold:  30,
+			RecoveryThreshold: 50,
+			MinDwell:          10 * time.Second,
+			DegradationHold:   2,
+			RecoveryHold:      2,
+			FlapPenalty:       20 * time.Second,
 		},
 	}
 }
@@ -88,6 +111,8 @@ func Load(path string) (Config, error) {
 				cfg.Profile = unquote(val)
 			case "probe":
 				section = "probe"
+			case "policy":
+				section = "policy"
 			default:
 				section = "" // unknown top-level block: skip its children
 			}
@@ -109,6 +134,26 @@ func Load(path string) (Config, error) {
 				cfg.Probe.Timeout = msDefault(val, cfg.Probe.Timeout)
 			default:
 				inTargets = false
+			}
+		}
+
+		if section == "policy" {
+			inTargets = false
+			switch key {
+			case "min_improvement":
+				cfg.Policy.MinImprovement = floatDefault(val, cfg.Policy.MinImprovement)
+			case "failure_threshold":
+				cfg.Policy.FailureThreshold = floatDefault(val, cfg.Policy.FailureThreshold)
+			case "recovery_threshold":
+				cfg.Policy.RecoveryThreshold = floatDefault(val, cfg.Policy.RecoveryThreshold)
+			case "min_dwell_ms":
+				cfg.Policy.MinDwell = msDefault(val, cfg.Policy.MinDwell)
+			case "degradation_hold":
+				cfg.Policy.DegradationHold = atoiDefault(val, cfg.Policy.DegradationHold)
+			case "recovery_hold":
+				cfg.Policy.RecoveryHold = atoiDefault(val, cfg.Policy.RecoveryHold)
+			case "flap_penalty_ms":
+				cfg.Policy.FlapPenalty = msDefault(val, cfg.Policy.FlapPenalty)
 			}
 		}
 	}
@@ -136,6 +181,43 @@ func (c *Config) normalize() {
 	if len(c.Probe.Targets) == 0 {
 		c.Probe.Targets = []string{"1.1.1.1:443", "8.8.8.8:443"}
 	}
+	c.normalizePolicy()
+}
+
+// normalizePolicy repairs only nonsensical (negative) hysteresis values, leaving
+// deliberate zeros intact: RecoveryHold 0 means "fail back on the first healthy
+// cycle" and FlapPenalty 0 disables the cooldown — both valid tunings.
+func (c *Config) normalizePolicy() {
+	d := Policy{
+		MinImprovement:    15,
+		FailureThreshold:  30,
+		RecoveryThreshold: 50,
+		MinDwell:          10 * time.Second,
+		DegradationHold:   2,
+		RecoveryHold:      2,
+		FlapPenalty:       20 * time.Second,
+	}
+	if c.Policy.MinImprovement < 0 {
+		c.Policy.MinImprovement = d.MinImprovement
+	}
+	if c.Policy.FailureThreshold < 0 {
+		c.Policy.FailureThreshold = d.FailureThreshold
+	}
+	if c.Policy.RecoveryThreshold < 0 {
+		c.Policy.RecoveryThreshold = d.RecoveryThreshold
+	}
+	if c.Policy.MinDwell < 0 {
+		c.Policy.MinDwell = d.MinDwell
+	}
+	if c.Policy.DegradationHold < 0 {
+		c.Policy.DegradationHold = d.DegradationHold
+	}
+	if c.Policy.RecoveryHold < 0 {
+		c.Policy.RecoveryHold = d.RecoveryHold
+	}
+	if c.Policy.FlapPenalty < 0 {
+		c.Policy.FlapPenalty = d.FlapPenalty
+	}
 }
 
 func unquote(s string) string {
@@ -150,6 +232,13 @@ func unquote(s string) string {
 
 func atoiDefault(s string, def int) int {
 	if v, err := strconv.Atoi(strings.TrimSpace(s)); err == nil {
+		return v
+	}
+	return def
+}
+
+func floatDefault(s string, def float64) float64 {
+	if v, err := strconv.ParseFloat(strings.TrimSpace(s), 64); err == nil {
 		return v
 	}
 	return def
