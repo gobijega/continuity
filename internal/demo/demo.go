@@ -25,6 +25,11 @@ type Step struct {
 // tail is the dwell after the final beat before the script loops.
 const tail = 10 * time.Second
 
+// manualHold is how long a visitor-triggered scenario holds the simulator
+// before the ambient demonstration auto-resumes, so a shared console returns to
+// its looping showcase after someone stops interacting.
+const manualHold = 60 * time.Second
+
 // Script returns the built-in ~90-second demonstration: steady state, 5G
 // congestion, failover to SATCOM with session continuity, recovery and
 // fail-back — then it loops.
@@ -49,6 +54,7 @@ func Script() []Step {
 // State is the runner's observable status, published to the dashboard/API.
 type State struct {
 	Running bool    `json:"running"`
+	Paused  bool    `json:"paused"` // a manual scenario has taken over the simulator
 	Caption string  `json:"caption"`
 	Step    int     `json:"step"`  // beats applied so far (1-based within a cycle)
 	Steps   int     `json:"steps"` // total beats in the script
@@ -64,13 +70,15 @@ type Runner struct {
 	script []Step
 	total  time.Duration
 
-	mu      sync.Mutex
-	start   time.Time
-	idx     int
-	caption string
-	elapsed time.Duration
-	loops   int
-	running bool
+	mu       sync.Mutex
+	start    time.Time
+	idx      int
+	caption  string
+	elapsed  time.Duration
+	loops    int
+	running  bool
+	paused   bool
+	pausedAt time.Time
 }
 
 // New builds a Runner over the built-in Script.
@@ -100,6 +108,17 @@ func (r *Runner) Advance(now time.Time) {
 	if !r.running {
 		return
 	}
+	if r.paused {
+		// A manual scenario owns the simulator; don't reshape it. Auto-resume
+		// the ambient demonstration once the hold expires.
+		if now.Sub(r.pausedAt) < manualHold {
+			return
+		}
+		r.paused = false
+		r.restart(now)
+		r.elapsed = 0
+		return
+	}
 	elapsed := now.Sub(r.start)
 	for r.idx < len(r.script) && elapsed >= r.script[r.idx].At {
 		r.applyStep(r.idx)
@@ -113,12 +132,39 @@ func (r *Runner) Advance(now time.Time) {
 	r.elapsed = elapsed
 }
 
+// Pause suspends the scripted demonstration so a manually triggered scenario
+// can drive the simulator directly. The control loop keeps ticking, so the
+// agent still reacts to whatever the manual scenario leaves in place.
+func (r *Runner) Pause(now time.Time) {
+	r.mu.Lock()
+	defer r.mu.Unlock()
+	if !r.running {
+		return
+	}
+	r.paused = true
+	r.pausedAt = now
+}
+
+// Resume clears the manual scenario and restarts the demonstration from steady
+// state.
+func (r *Runner) Resume(now time.Time) {
+	r.mu.Lock()
+	defer r.mu.Unlock()
+	if !r.running {
+		return
+	}
+	r.paused = false
+	r.restart(now)
+	r.elapsed = 0
+}
+
 // State returns the current runner status.
 func (r *Runner) State() State {
 	r.mu.Lock()
 	defer r.mu.Unlock()
 	return State{
 		Running: r.running,
+		Paused:  r.paused,
 		Caption: r.caption,
 		Step:    r.idx,
 		Steps:   len(r.script),

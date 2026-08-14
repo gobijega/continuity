@@ -131,6 +131,14 @@ func (s *Sim) Restore(name string) {
 	}
 }
 
+// RestoreAll clears impairment from every bearer, returning the whole set to
+// baseline.
+func (s *Sim) RestoreAll() {
+	for _, n := range s.Names() {
+		s.Restore(n)
+	}
+}
+
 // Scenarios returns the built-in preset impairments (spec §20).
 func Scenarios() map[string]func(*Sim) {
 	return map[string]func(*Sim){
@@ -138,5 +146,42 @@ func Scenarios() map[string]func(*Sim) {
 		"SATELLITE_OUTAGE":    func(s *Sim) { s.Outage("satcom") },
 		"HIGH_PACKET_LOSS":    func(s *Sim) { s.Degrade("wifi", 60, 30, 25, 0.5) },
 		"LINK_RECOVERY":       func(s *Sim) { s.Restore("5g"); s.Restore("satcom"); s.Restore("wifi") },
+	}
+}
+
+// Attacks returns the adversarial scenarios surfaced on the demo console. Each
+// models a distinct threat to a multi-bearer edge node and deliberately leaves a
+// different bearer as the best surviving path, so the agent's autonomous
+// re-selection of the highest-scored network is visible:
+//
+//   - dos: a volumetric denial-of-service floods the routed terrestrial IP
+//     bearers (5G and Wi-Fi); the distinct SATCOM transport stays off the
+//     flooded route, so the agent fails over to SATCOM.
+//   - asat: a kinetic anti-satellite strike removes SATCOM entirely; the
+//     terrestrial bearers are untouched, so 5G is the best surviving path.
+//   - jamming: a wideband RF electronic attack saturates the long-range
+//     cellular and SATCOM bands; the short-range Wi-Fi bearer degrades least and
+//     becomes the best available path.
+//
+// "restore" clears every impairment. Magnitudes are sized so the intended
+// winner clearly outscores the rest under the default scoring profile.
+func Attacks() map[string]func(*Sim) {
+	return map[string]func(*Sim){
+		"dos": func(s *Sim) {
+			s.RestoreAll()
+			s.Degrade("5g", 600, 60, 46, 0.06)
+			s.Degrade("wifi", 340, 40, 40, 0.10)
+		},
+		"asat": func(s *Sim) {
+			s.RestoreAll()
+			s.Outage("satcom")
+		},
+		"jamming": func(s *Sim) {
+			s.RestoreAll()
+			s.Degrade("5g", 520, 80, 55, 0.08)
+			s.Degrade("satcom", 460, 70, 50, 0.10)
+			s.Degrade("wifi", 25, 8, 2, 0.80)
+		},
+		"restore": func(s *Sim) { s.RestoreAll() },
 	}
 }

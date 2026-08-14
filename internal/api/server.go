@@ -8,6 +8,7 @@ import (
 	"encoding/json"
 	"net/http"
 	"strings"
+	"time"
 
 	"github.com/gobijega/continuity/internal/agent"
 	"github.com/gobijega/continuity/internal/demo"
@@ -58,6 +59,7 @@ func (s *Server) routes() {
 	s.mux.HandleFunc("GET /api/v1/tunnel", s.handleTunnel)
 	s.mux.HandleFunc("GET /api/v1/demo", s.handleDemo)
 	s.mux.HandleFunc("POST /api/v1/simulator/{name}/{action}", s.handleSimulator)
+	s.mux.HandleFunc("POST /api/v1/scenario/{name}", s.handleScenario)
 }
 
 func (s *Server) handleDashboard(w http.ResponseWriter, r *http.Request) {
@@ -168,6 +170,39 @@ func (s *Server) handleSimulator(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	writeJSON(w, http.StatusOK, map[string]string{"ok": action, "target": name})
+}
+
+// handleScenario applies a named adversarial scenario (dos | asat | jamming |
+// restore) to the simulator. It hands manual control to the visitor: the
+// scripted demo is paused so it stops reshaping the simulator, the attack is
+// applied, and the agent re-selects the highest-scored surviving bearer.
+// "restore" resumes the ambient demonstration.
+func (s *Server) handleScenario(w http.ResponseWriter, r *http.Request) {
+	if s.sim == nil {
+		writeJSON(w, http.StatusConflict, map[string]string{"error": "simulator not enabled (live mode)"})
+		return
+	}
+	name := r.PathValue("name")
+	fn, ok := simulator.Attacks()[name]
+	if !ok {
+		writeJSON(w, http.StatusBadRequest, map[string]string{"error": "unknown scenario"})
+		return
+	}
+	// Pause/resume the scripted demo if one is attached, so a visitor's manual
+	// scenario isn't overwritten by the loop on the next tick.
+	if d, ok := s.demo.(interface {
+		Pause(time.Time)
+		Resume(time.Time)
+	}); ok {
+		now := time.Now()
+		if name == "restore" {
+			d.Resume(now)
+		} else {
+			d.Pause(now)
+		}
+	}
+	fn(s.sim)
+	writeJSON(w, http.StatusOK, map[string]string{"ok": "scenario", "scenario": name})
 }
 
 func writeJSON(w http.ResponseWriter, code int, v any) {

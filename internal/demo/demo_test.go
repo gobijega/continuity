@@ -83,3 +83,62 @@ func TestRunnerIdleUntilStarted(t *testing.T) {
 		t.Fatalf("runner should be idle before Start, got %+v", st)
 	}
 }
+
+func TestPauseHoldsManualScenario(t *testing.T) {
+	sim := simulator.NewDemo()
+	script := []Step{
+		{At: 0, Caption: "start"},
+		{At: 2 * time.Second, Caption: "degrade", Action: func(s *simulator.Sim) { s.Degrade("5g", 400, 50, 25, 0.1) }},
+	}
+	r := NewWith(sim, script)
+	T := time.Unix(1700000000, 0)
+	r.Start(T)
+
+	// A visitor pauses the demo and applies a manual impairment.
+	r.Pause(T.Add(1 * time.Second))
+	sim.Outage("satcom")
+	if !r.State().Paused {
+		t.Fatal("runner should report paused")
+	}
+	// While paused, Advance must not fire scripted beats (5g stays clean) nor
+	// clear the manual impairment (satcom stays down).
+	r.Advance(T.Add(3 * time.Second))
+	if sim.Sample("5g", T).LossPct != 0 {
+		t.Error("paused: scripted degrade beat should not have fired")
+	}
+	if sim.Sample("satcom", T).OK {
+		t.Error("paused: manual satcom outage should persist")
+	}
+
+	// Resume clears the scenario and returns to steady state.
+	r.Resume(T.Add(4 * time.Second))
+	if st := r.State(); st.Paused || st.Caption != "start" {
+		t.Fatalf("after resume: %+v", st)
+	}
+	if !sim.Sample("satcom", T).OK {
+		t.Error("resume should restore satcom")
+	}
+}
+
+func TestPauseAutoResumes(t *testing.T) {
+	sim := simulator.NewDemo()
+	r := NewWith(sim, Script())
+	T := time.Unix(1700000000, 0)
+	r.Start(T)
+	r.Pause(T)
+	sim.Outage("satcom")
+
+	// Before the hold expires it stays paused.
+	r.Advance(T.Add(manualHold - time.Second))
+	if !r.State().Paused {
+		t.Fatal("should still be paused before manualHold elapses")
+	}
+	// After the hold, the ambient demo auto-resumes and restores the sim.
+	r.Advance(T.Add(manualHold + time.Second))
+	if r.State().Paused {
+		t.Error("should have auto-resumed after manualHold")
+	}
+	if !sim.Sample("satcom", T).OK {
+		t.Error("auto-resume should restore satcom")
+	}
+}

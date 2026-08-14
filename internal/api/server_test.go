@@ -9,6 +9,7 @@ import (
 
 	"github.com/gobijega/continuity/internal/agent"
 	"github.com/gobijega/continuity/internal/demo"
+	"github.com/gobijega/continuity/internal/policy"
 	"github.com/gobijega/continuity/internal/simulator"
 )
 
@@ -146,5 +147,67 @@ func TestSimulatorDisabledInLiveMode(t *testing.T) {
 	s.Handler().ServeHTTP(rec, httptest.NewRequest("POST", "/api/v1/simulator/5g/degrade", nil))
 	if rec.Code != http.StatusConflict {
 		t.Fatalf("live-mode simulator status = %d, want 409", rec.Code)
+	}
+}
+
+func TestScenarioEndpointStatuses(t *testing.T) {
+	s, _ := newTestServer(t)
+	for _, name := range []string{"dos", "asat", "jamming", "restore"} {
+		rec := httptest.NewRecorder()
+		s.Handler().ServeHTTP(rec, httptest.NewRequest("POST", "/api/v1/scenario/"+name, nil))
+		if rec.Code != http.StatusOK {
+			t.Errorf("scenario %s status = %d, want 200", name, rec.Code)
+		}
+	}
+	rec := httptest.NewRecorder()
+	s.Handler().ServeHTTP(rec, httptest.NewRequest("POST", "/api/v1/scenario/bogus", nil))
+	if rec.Code != http.StatusBadRequest {
+		t.Errorf("unknown scenario status = %d, want 400", rec.Code)
+	}
+}
+
+func TestScenarioDisabledInLiveMode(t *testing.T) {
+	a := agent.New(agent.Options{Source: agent.NewSimSource(simulator.NewDemo(), "5g")})
+	a.Tick(time.Unix(1700000000, 0))
+	s := New(a, nil) // no sim -> live mode
+	rec := httptest.NewRecorder()
+	s.Handler().ServeHTTP(rec, httptest.NewRequest("POST", "/api/v1/scenario/dos", nil))
+	if rec.Code != http.StatusConflict {
+		t.Fatalf("live-mode scenario status = %d, want 409", rec.Code)
+	}
+}
+
+// TestScenarioSelection is the behavioural check: from a fresh steady state
+// (5G active), each attack drives the control loop to autonomously select the
+// intended highest-scored surviving bearer.
+func TestScenarioSelection(t *testing.T) {
+	hyst := policy.Hysteresis{
+		MinImprovement: 12, FailureThreshold: 35, RecoveryThreshold: 60,
+		MinDwell: 3 * time.Second, DegradationHold: 2, RecoveryHold: 2, FlapPenalty: 6 * time.Second,
+	}
+	cases := []struct{ scenario, want string }{
+		{"dos", "satcom"},   // terrestrial IP flooded -> space layer wins
+		{"jamming", "wifi"}, // cellular + SATCOM jammed -> short-range Wi-Fi wins
+		{"asat", "5g"},      // satellite destroyed -> agent holds 5G
+	}
+	for _, c := range cases {
+		sim := simulator.NewDemo()
+		a := agent.New(agent.Options{Node: "veh", Source: agent.NewSimSource(sim, "5g"), Hyst: hyst})
+		s := New(a, sim)
+		T := time.Unix(1700000000, 0)
+		a.Tick(T) // steady state: 5G active
+
+		rec := httptest.NewRecorder()
+		s.Handler().ServeHTTP(rec, httptest.NewRequest("POST", "/api/v1/scenario/"+c.scenario, nil))
+		if rec.Code != http.StatusOK {
+			t.Fatalf("%s: status %d, want 200", c.scenario, rec.Code)
+		}
+		var active string
+		for i := 1; i <= 12; i++ {
+			active = a.Tick(T.Add(time.Duration(i) * time.Second)).Active
+		}
+		if active != c.want {
+			t.Errorf("after %s, active = %q, want %q", c.scenario, active, c.want)
+		}
 	}
 }

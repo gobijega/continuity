@@ -58,6 +58,8 @@
   .controls button.bad:hover{border-color:var(--red);color:var(--red)}
   .controls button.good:hover{border-color:var(--accent);color:var(--accent)}
   .controls .spacer{flex:1}
+  .ctl-label{align-self:center;font-family:var(--mono);font-size:10px;letter-spacing:.16em;
+    text-transform:uppercase;color:var(--muted);margin-right:2px}
 
   .grid{display:grid;grid-template-columns:1.55fr 1fr;gap:16px;align-items:start}
   .cards{display:flex;flex-direction:column;gap:12px}
@@ -133,11 +135,12 @@
   </div>
 
   <div class="controls" id="controls" style="display:none">
-    <button class="warn" onclick="sim('5g','degrade')">Degrade 5G</button>
-    <button class="bad" onclick="sim('satcom','outage')">SATCOM outage</button>
-    <button class="warn" onclick="sim('wifi','degrade')">Wi-Fi packet loss</button>
+    <span class="ctl-label">Adversarial scenarios</span>
+    <button class="bad" onclick="scenario('dos')">Denial of Service</button>
+    <button class="bad" onclick="scenario('asat')">ASAT Kinetic Strike</button>
+    <button class="bad" onclick="scenario('jamming')">Signal Jamming · EA</button>
     <span class="spacer"></span>
-    <button class="good" onclick="sim('all','restore')">Restore all</button>
+    <button class="good" onclick="scenario('restore')">Restore &amp; resume</button>
   </div>
 
   <div class="grid">
@@ -158,8 +161,8 @@ function evColor(t){ return {MIGRATE:C.green,REBIND:C.green,DEGRADED:C.amber,LIN
 function hhmmss(iso){ try{const d=new Date(iso);return d.toTimeString().slice(0,8);}catch(e){return '';} }
 function esc(x){ return (x==null?'':String(x)).replace(/[&<>]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;'}[c])); }
 
-async function sim(name,action){
-  try{ await fetch(`/api/v1/simulator/${name}/${action}`,{method:'POST'}); }catch(e){}
+async function scenario(name){
+  try{ await fetch(`/api/v1/scenario/${name}`,{method:'POST'}); }catch(e){}
   setTimeout(refresh,150);
 }
 
@@ -185,20 +188,33 @@ function render(st){
       `via <b style="color:${C.green}">${esc((c.endpoint||'—').toUpperCase())}</b> · ${esc(c.cipher)} · ${c.rebinds} rebind${c.rebinds===1?'':'s'}`;
   } else { ct.style.display='none'; }
 
-  // Scripted-demo narrative banner (Sprint 10).
+  // Scripted-demo narrative banner (Sprint 10), or a manual-scenario banner
+  // when a visitor-triggered attack has taken over the simulator.
   const dm=st.demo, db=document.getElementById('demobar');
-  const demoOn = !!(dm && dm.running);
-  if(demoOn){
-    db.style.display='block';
+  const badge=db.querySelector('.demo-badge');
+  const prog=document.getElementById('demoProg').parentElement;
+  const manual = !!(dm && dm.paused);
+  if(dm && dm.running && !manual){
+    db.style.display='block'; db.style.borderLeftColor=C.green;
+    badge.textContent='DEMO'; badge.style.background=C.green; badge.style.color=C.bg;
+    prog.style.display='block';
     document.getElementById('demoCap').textContent = dm.caption||'';
     const pct = dm.total_s ? Math.max(0,Math.min(100, dm.elapsed_s/dm.total_s*100)) : 0;
     document.getElementById('demoProg').style.width = pct+'%';
     document.getElementById('demoMeta').textContent =
       `beat ${dm.step}/${dm.steps} · ${Math.round(dm.elapsed_s)}s / ${Math.round(dm.total_s)}s · cycle ${(dm.loops||0)+1}`;
+  } else if(manual){
+    db.style.display='block'; db.style.borderLeftColor=C.amber;
+    badge.textContent='MANUAL'; badge.style.background=C.amber; badge.style.color=C.bg;
+    prog.style.display='none';
+    document.getElementById('demoCap').textContent =
+      'Adversarial scenario active — the agent is autonomously selecting the highest-scored surviving bearer.';
+    document.getElementById('demoMeta').textContent = 'Ambient demonstration resumes shortly · or hit Restore & resume.';
   } else { db.style.display='none'; }
 
-  // Manual controls: shown in sim mode, hidden while the scripted demo drives.
-  document.getElementById('controls').style.display = (st.sim && !demoOn) ? 'flex' : 'none';
+  // Attack controls: available whenever the simulator is enabled (including the
+  // live auto-demo), so a visitor can trigger a scenario and watch the agent react.
+  document.getElementById('controls').style.display = st.sim ? 'flex' : 'none';
 
   const cards=document.getElementById('cards'); cards.innerHTML='';
   (st.bearers||[]).forEach(b=>{
@@ -231,7 +247,7 @@ function render(st){
       <div class="ttime">${hhmmss(e.at)}</div><div class="ttxt">${txt}</div>`;
     evs.appendChild(el);
   });
-  if(!(st.events||[]).length){ evs.innerHTML=`<div style="color:${C.muted};font-family:var(--mono);font-size:12px">// no events yet — trigger a degrade to see failover</div>`; }
+  if(!(st.events||[]).length){ evs.innerHTML=`<div style="color:${C.muted};font-family:var(--mono);font-size:12px">// no events yet — trigger an attack scenario to see the agent fail over</div>`; }
 }
 
 async function refresh(){

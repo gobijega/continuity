@@ -55,3 +55,50 @@ func TestNetemArgs(t *testing.T) {
 		t.Fatalf("NetemClearArgs = %v", clr)
 	}
 }
+
+func TestAttacks(t *testing.T) {
+	a := Attacks()
+	for _, name := range []string{"dos", "asat", "jamming", "restore"} {
+		if a[name] == nil {
+			t.Fatalf("missing attack %q", name)
+		}
+	}
+
+	// DoS floods the terrestrial IP bearers; SATCOM stays off the flooded route.
+	s := NewDemo()
+	a["dos"](s)
+	if m := s.Sample("satcom", t0); !m.OK || m.LossPct != 0 {
+		t.Errorf("dos: satcom should stay clean, got %+v", m)
+	}
+	if m := s.Sample("5g", t0); m.LossPct == 0 {
+		t.Error("dos: 5g should be flooded")
+	}
+	if m := s.Sample("wifi", t0); m.LossPct <= 8 {
+		t.Error("dos: wifi should be flooded above its 8% baseline")
+	}
+
+	// ASAT removes SATCOM; terrestrial bearers untouched.
+	s = NewDemo()
+	a["asat"](s)
+	if m := s.Sample("satcom", t0); m.OK {
+		t.Error("asat: satcom should be down")
+	}
+	if m := s.Sample("5g", t0); !m.OK || m.LossPct != 0 {
+		t.Errorf("asat: 5g should be untouched, got %+v", m)
+	}
+
+	// Jamming hits cellular + SATCOM hardest; short-range Wi-Fi least.
+	s = NewDemo()
+	a["jamming"](s)
+	fiveG, sat, wifi := s.Sample("5g", t0), s.Sample("satcom", t0), s.Sample("wifi", t0)
+	if !wifi.OK || wifi.LossPct >= fiveG.LossPct || wifi.LossPct >= sat.LossPct {
+		t.Errorf("jamming: wifi should be least affected (wifi=%.0f 5g=%.0f sat=%.0f loss)",
+			wifi.LossPct, fiveG.LossPct, sat.LossPct)
+	}
+
+	// Restore clears everything back to baseline.
+	a["restore"](s)
+	if m := s.Sample("5g", t0); m.LossPct != 0 || m.LatencyMs != 28 {
+		t.Errorf("restore: 5g should be baseline, got %+v", m)
+	}
+}
