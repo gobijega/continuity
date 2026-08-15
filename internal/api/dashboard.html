@@ -220,11 +220,7 @@ function render(st){
     badge.textContent='MANUAL'; badge.style.background=C.amber; badge.style.color=C.bg;
     prog.style.display='none';
     document.getElementById('demoCap').textContent =
-<<<<<<< ours
-      'Adversarial scenario active — the agent is autonomously selecting the highest-scored surviving bearer.';
-=======
       'Adversarial scenario active. The agent is autonomously selecting the highest-scored surviving bearer.';
->>>>>>> theirs
     document.getElementById('demoMeta').textContent = 'Ambient demonstration resumes shortly · or hit Restore & resume.';
   } else { db.style.display='none'; }
 
@@ -263,11 +259,7 @@ function render(st){
       <div class="ttime">${hhmmss(e.at)}</div><div class="ttxt">${txt}</div>`;
     evs.appendChild(el);
   });
-<<<<<<< ours
-  if(!(st.events||[]).length){ evs.innerHTML=`<div style="color:${C.muted};font-family:var(--mono);font-size:12px">// no events yet — trigger an attack scenario to see the agent fail over</div>`; }
-=======
   if(!(st.events||[]).length){ evs.innerHTML=`<div style="color:${C.muted};font-family:var(--mono);font-size:12px">// no events yet · trigger an attack scenario to see the agent fail over</div>`; }
->>>>>>> theirs
 }
 
 async function refresh(){
