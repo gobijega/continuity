@@ -90,6 +90,12 @@
   .ev .ttxt b{font-weight:600}
   .foot{font-family:var(--mono);color:var(--muted);font-size:10px;margin-top:20px;letter-spacing:.1em;
     text-transform:uppercase;padding-top:14px;border-top:1px solid var(--border)}
+  .about{background:var(--panel);border:1px solid var(--border);border-left:2px solid var(--accent);
+    border-radius:var(--radius);padding:18px 20px;margin-top:16px}
+  .about h3{font-family:var(--mono);font-size:10px;letter-spacing:.18em;color:var(--accent);font-weight:600;
+    text-transform:uppercase;margin-bottom:10px}
+  .about p{font-family:var(--sans);color:var(--muted);font-size:13px;line-height:1.6;margin-bottom:8px}
+  .about p:last-child{margin-bottom:0}
 
   /* Scripted-demo narrative banner (Sprint 10) */
   .demobar{background:var(--panel);border:1px solid var(--border);border-left:2px solid var(--accent);
@@ -151,7 +157,13 @@
     </div>
   </div>
 
-  <div class="foot" id="foot">JEGASEC Continuity — Edge Agent · autonomous multi-bearer resilience</div>
+  <div class="about">
+    <h3>About Continuity</h3>
+    <p>Continuity is an edge-deployed communications orchestrator. It scores every available network bearer (cellular, satellite, radio, Wi-Fi and wired) on live latency, jitter and packet loss, and autonomously moves traffic to the best path the moment the active link degrades, carrying live sessions across each failover on an encrypted overlay so nothing drops. It runs on standard Linux at the edge, with no cloud dependency and no external libraries.</p>
+    <p>This console is a looping demonstration on synthetic bearers. Trigger an adversarial scenario above (denial-of-service, a kinetic anti-satellite strike, or RF jamming) and watch the agent re-select the highest-scored surviving network in real time. It is a working demonstrator, not a fielded system, and the figures shown are engineering targets, not independently validated.</p>
+  </div>
+
+  <div class="foot" id="foot">JEGASEC Continuity · Edge Agent · autonomous multi-bearer resilience</div>
 
 <script>
 const C={green:'#00ff41',amber:'#ffb020',red:'#ff4d4d',muted:'#8a97ab',text:'#e6ebf3',bg:'#06080c',border:'#2a3648'};
@@ -208,7 +220,11 @@ function render(st){
     badge.textContent='MANUAL'; badge.style.background=C.amber; badge.style.color=C.bg;
     prog.style.display='none';
     document.getElementById('demoCap').textContent =
+<<<<<<< ours
       'Adversarial scenario active — the agent is autonomously selecting the highest-scored surviving bearer.';
+=======
+      'Adversarial scenario active. The agent is autonomously selecting the highest-scored surviving bearer.';
+>>>>>>> theirs
     document.getElementById('demoMeta').textContent = 'Ambient demonstration resumes shortly · or hit Restore & resume.';
   } else { db.style.display='none'; }
 
@@ -241,13 +257,17 @@ function render(st){
     const col=evColor(e.type);
     const flow = (e.type==='MIGRATE'||e.type==='REBIND');
     const txt = flow
-      ? `<b style="color:${col}">${esc((e.from||'').toUpperCase())} → ${esc((e.to||'').toUpperCase())}</b> — ${esc(e.reason)}`
-      : `<b>${esc((e.interface||'').toUpperCase())}</b> ${esc(e.type.replace('_',' ').toLowerCase())} — ${esc(e.reason)}`;
+      ? `<b style="color:${col}">${esc((e.from||'').toUpperCase())} → ${esc((e.to||'').toUpperCase())}</b> · ${esc(e.reason)}`
+      : `<b>${esc((e.interface||'').toUpperCase())}</b> ${esc(e.type.replace('_',' ').toLowerCase())} · ${esc(e.reason)}`;
     el.innerHTML=`<div class="tdot" style="background:${col};box-shadow:0 0 8px ${col}88"></div>
       <div class="ttime">${hhmmss(e.at)}</div><div class="ttxt">${txt}</div>`;
     evs.appendChild(el);
   });
+<<<<<<< ours
   if(!(st.events||[]).length){ evs.innerHTML=`<div style="color:${C.muted};font-family:var(--mono);font-size:12px">// no events yet — trigger an attack scenario to see the agent fail over</div>`; }
+=======
+  if(!(st.events||[]).length){ evs.innerHTML=`<div style="color:${C.muted};font-family:var(--mono);font-size:12px">// no events yet · trigger an attack scenario to see the agent fail over</div>`; }
+>>>>>>> theirs
 }
 
 async function refresh(){

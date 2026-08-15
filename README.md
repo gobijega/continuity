@@ -2,17 +2,25 @@
 
 > Keeps mission-critical systems connected when their networks degrade or fail.
 
-Continuity is edge-deployed software that maintains application connectivity
-across multiple communications bearers — cellular, satellite, radio, Wi-Fi and
-wired — when individual links become congested, degraded, jammed or unavailable.
+Continuity is an edge-deployed communications orchestrator. It continuously
+scores every available network bearer (cellular, satellite, radio, Wi-Fi and
+wired) on live latency, jitter and packet loss, and autonomously moves traffic
+to the best path the moment the active link degrades. Anti-flap hysteresis stops
+it reacting to noise, and an encrypted overlay carries live sessions across each
+failover so connections never drop. It runs on standard Linux at the edge, is
+hardware-agnostic, has **zero external dependencies**, and needs no cloud
+connectivity.
 
-This repository is the **Continuity Edge Agent**. It covers the complete
-**Continuity 0.1** demonstrator (Sprints 1–10): interface discovery, link
-telemetry, scoring, the policy engine with tuned hysteresis and anti-flap
-recovery, automated failover, an encrypted stable-overlay session-continuity
-layer, a degradation simulator, a scripted 90-second demonstration, and a live
-web dashboard. It is hardware-agnostic, runs on standard Linux, has **zero
-external dependencies**, and needs no cloud connectivity.
+This repository is the **Continuity Edge Agent**, the complete **Continuity 0.1**
+demonstrator (Sprints 1–10): interface discovery, link telemetry, scoring, the
+policy engine with tuned hysteresis and anti-flap recovery, automated failover,
+an encrypted stable-overlay session-continuity layer, a degradation simulator, a
+scripted 90-second demonstration, and a live web console. A public demonstrator
+runs at **[jscontinuity.systems](https://jscontinuity.systems)**, where you can
+trigger adversarial scenarios (denial-of-service, a kinetic anti-satellite
+strike, and RF jamming) and watch the agent re-select the highest-scored
+surviving network in real time. It is a working demonstrator, not a fielded
+system.
 
 ![Continuity dashboard](docs/dashboard.png)
 
@@ -34,12 +42,14 @@ autonomously and the dashboard narrates each beat. For hands-on control instead:
 
 ```sh
 go run ./cmd/continuity serve --sim
-# open http://127.0.0.1:8080  →  click "Degrade 5G" and watch it fail over
+# open http://127.0.0.1:8080  →  trigger an attack scenario and watch it fail over
 ```
 
-The `--sim` flag runs the whole control loop over a built-in simulator, so you
-can drive DEGRADE / OUTAGE / RESTORE from the dashboard and see real scoring,
-policy and failover decisions — without touching the network.
+The `--sim` flag runs the whole control loop over a built-in simulator. From the
+console you can launch adversarial scenarios (denial-of-service, a kinetic
+anti-satellite strike, and RF jamming) and see real scoring, policy and failover
+decisions as the agent re-selects the best surviving bearer, without touching the
+network.
 
 ## Or inspect real bearers
 
@@ -94,6 +104,7 @@ pluggable live-or-simulated source.
 | `GET /api/v1/tunnel` | Session-continuity overlay: address, active endpoint, cipher, rebinds |
 | `GET /api/v1/demo` | Scripted-demonstration narrative and progress (demo mode) |
 | `POST /api/v1/simulator/{name}/{degrade\|outage\|restore}` | Demo controls (sim mode) |
+| `POST /api/v1/scenario/{dos\|asat\|jamming\|restore}` | Adversarial demo scenarios (sim/demo mode) |
 
 ## Project layout
 
