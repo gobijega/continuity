@@ -36,6 +36,7 @@ type Input struct {
 	ThroughputMbps float64 // <= 0 means unknown (scored neutrally)
 	ReliabilityPct float64 // 0..100 historical success; use 100 if unknown
 	CostScore      float64 // 0..100 (100 = free/unmetered); use 100 if unknown
+	ResiliencePct  float64 // 0..100 structural resilience/stability of the bearer type; scored only when the weight set gives it weight
 }
 
 // Score is a total in [0,100] plus the component sub-scores that produced it.
@@ -58,6 +59,7 @@ func Compute(in Input, w Weights, t Thresholds) Score {
 		"reliability":  clamp(in.ReliabilityPct, 0, 100),
 		"availability": 100,
 		"cost":         clamp(in.CostScore, 0, 100),
+		"resilience":   clamp(in.ResiliencePct, 0, 100),
 	}
 	if in.ThroughputMbps <= 0 {
 		comp["bandwidth"] = 50 // neutral when capacity is unknown
@@ -72,7 +74,8 @@ func Compute(in Input, w Weights, t Thresholds) Score {
 		comp["bandwidth"]*wn.Bandwidth +
 		comp["reliability"]*wn.Reliability +
 		comp["availability"]*wn.Availability +
-		comp["cost"]*wn.Cost
+		comp["cost"]*wn.Cost +
+		comp["resilience"]*wn.Resilience
 
 	return Score{Total: round1(clamp(total, 0, 100)), Components: comp}
 }

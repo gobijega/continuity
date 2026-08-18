@@ -28,6 +28,7 @@ import (
 	"github.com/gobijega/continuity/internal/config"
 	"github.com/gobijega/continuity/internal/demo"
 	"github.com/gobijega/continuity/internal/interfaces"
+	"github.com/gobijega/continuity/internal/mission"
 	"github.com/gobijega/continuity/internal/policy"
 	"github.com/gobijega/continuity/internal/routing"
 	"github.com/gobijega/continuity/internal/scoring"
@@ -253,12 +254,17 @@ func serveMain(args []string) {
 		}
 	}
 
-	a := agent.New(agent.Options{Node: cfg.Node, Profile: cfg.Profile, Source: src, Router: router, Tunnel: tun, Hyst: hyst})
+	// The Mission Context Engine makes the running demonstrator mission-aware by
+	// default (spec §2): the agent scores every bearer against mission policy,
+	// and the API can switch mission profile/state and apply scenario presets.
+	missionEng := mission.NewEngine(mission.Routine, mission.StateNormal)
+	a := agent.New(agent.Options{Node: cfg.Node, Profile: cfg.Profile, Source: src, Router: router, Tunnel: tun, Hyst: hyst, Mission: missionEng})
 
 	ctx, stop := signal.NotifyContext(context.Background(), os.Interrupt, syscall.SIGTERM)
 	defer stop()
 
 	srv := api.New(a, sim)
+	srv.SetMission(missionEng)
 
 	if *runDemo && sim != nil {
 		runner := demo.New(sim)
