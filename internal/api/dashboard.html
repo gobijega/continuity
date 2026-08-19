@@ -6,487 +6,519 @@
 <title>JEGASEC Continuity — Mission-Aware Communications</title>
 <link rel="preconnect" href="https://fonts.googleapis.com" />
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-<link href="https://fonts.googleapis.com/css2?family=Chakra+Petch:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;600&family=IBM+Plex+Sans:wght@400;600&display=swap" rel="stylesheet" />
+<link href="https://fonts.googleapis.com/css2?family=Chakra+Petch:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;600&family=IBM+Plex+Sans:wght@400;500;600&display=swap" rel="stylesheet" />
 <link rel="icon" type="image/svg+xml" href="data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCA2OTUgNjk1IiByb2xlPSJpbWciIGFyaWEtbGFiZWw9IkpFR0FTRUMgbWFyayI+CiAgPGRlZnM+CiAgICA8bGluZWFyR3JhZGllbnQgaWQ9ImpzZyIgeDE9IjEiIHkxPSIwIiB4Mj0iMCIgeTI9IjEiPgogICAgICA8c3RvcCBvZmZzZXQ9IjAiIHN0b3AtY29sb3I9IiMwMEEwNTAiLz4KICAgICAgPHN0b3Agb2Zmc2V0PSIxIiBzdG9wLWNvbG9yPSIjMzlGRjE0Ii8+CiAgICA8L2xpbmVhckdyYWRpZW50PgogIDwvZGVmcz4KICA8cGF0aCBkPSJNMTI4LDAgTDU2NywwIEw2OTUsMTI4IEw2OTUsNTY3IEw1NjcsNjk1IEwxMjgsNjk1IEwwLDU2NyBMMCwxMjggWiIgZmlsbD0idXJsKCNqc2cpIi8+CiAgPGcgdHJhbnNmb3JtPSJ0cmFuc2xhdGUoMC4wMDAwMDAsNjk1LjAwMDAwMCkgc2NhbGUoMC4xMDAwMDAsLTAuMTAwMDAwKSIKZmlsbD0iIzAwMDAwMCIgc3Ryb2tlPSJub25lIj4KPHBhdGggZD0iTTE1MDIgNjk0MyBjMzcgLTIgMTAwIC0yIDE0MCAwIDQwIDEgMTAgMyAtNjcgMyAtNzcgMCAtMTEwIC0xIC03MwotM3oiLz4KPHBhdGggZD0iTTQwMzIgNjkzMCBsMTYzOCAtNSA2NDIgLTY0MCA2NDMgLTY0MCAtNjQ1IDY0OCAtNjQ1IDY0NyAtMTYzNSAtMgotMTYzNSAtMyAxNjM3IC01eiIvPgo8cGF0aCBkPSJNNTAyMCA1ODI5IGMtMTUzIC0xMSAtMzAzIC03MCAtNDcwIC0xODMgLTMwOCAtMjEwIC03MzAgLTM2MSAtMTE3NQotNDIyIC0xNzggLTI1IC02MzMgLTI1IC04MjAgLTEgLTI2OCAzNSAtNDc1IDc5IC02OTMgMTQ4IC02NSAyMCAtMTEzIDI5IC0xNjEKMjkgLTE3MCAwIC0zMTggLTk0IC0zODcgLTI0NSAtMTAwIC0yMTkgLTEyIC00NjUgMjA1IC01NzMgNzIgLTM2IDc5IC0zNyAxNzUKLTM2IDkwIDEgMTEzIDUgMjA1IDM4IDIxNiA3NiA1NDcgMTQ0IDgwNiAxNjYgMjQ1IDIwIDU0MyAxMCA3NjUgLTI2IDE5NSAtMzIKNDY3IC0xMDcgNTY0IC0xNTYgMTQwIC03MSAzNjMgLTI0NCA0ODYgLTM3NiAxNzAgLTE4NCAyNjMgLTM0MCAzMjQgLTU0NyAxMzYKLTQ2MyAxNDggLTkwNyAzNiAtMTM4MCAtMzggLTE2MiAtOTIgLTMyNCAtMTUyIC00NjMgLTQ1IC0xMDIgLTUxIC0xMjYgLTU1Ci0yMDEgLTggLTE0NCAzOSAtMjY2IDEzNyAtMzUzIDI0NiAtMjE5IDYyMSAtMTAyIDcwNSAyMTkgMjAgNzUgMTggMTQzIC00IDIyMwotMTM3IDQ4NiAtMTg3IDg5NCAtMTYxIDEzMTUgMzIgNTI4IDE3MCAxMDAwIDQwNSAxMzg1IDE2MSAyNjQgMTkxIDM0MyAyMDIKNTMyIDI3IDQ3OSAtMzI0IDg3NSAtODA3IDkxMCAtMjUgMiAtODMgMSAtMTMwIC0zeiBtMTU3IC00MzggYzIxOCAtNDIgMzcwCi0yNTQgMzQzIC00NzcgLTI4IC0yMzAgLTI1MyAtNDAwIC00ODIgLTM2NCAtMzU2IDU1IC00OTIgNDg3IC0yMzAgNzMyIDEwMiA5NgoyMzMgMTM0IDM2OSAxMDl6IG0tMzM4OSAtMjMwIGMxNDQgLTc0IDE1NSAtMjc5IDIwIC0zNjkgLTM2IC0yMyAtNTIgLTI3IC0xMTQKLTI3IC02NSAwIC03NiAzIC0xMTUgMzEgLTEwOCA3OCAtMTIxIDI0MyAtMjcgMzMxIDYwIDU2IDE2NCA3MSAyMzYgMzR6IG0zMzg5Ci0zMzkyIGMxMiAtNCA0MCAtMjQgNjIgLTQ1IDE0MCAtMTI2IDQ4IC0zNjMgLTE0MSAtMzY0IC02MCAwIC05NSAxMyAtMTM2IDUzCi00OCA0NiAtNzIgOTggLTcyIDE1NyAwIDE1MSAxNDYgMjUyIDI4NyAxOTl6Ii8+CjxwYXRoIGQ9Ik02OTQ0IDU0MDAgYzAgLTExOCAyIC0xNjcgMyAtMTA3IDIgNTkgMiAxNTUgMCAyMTUgLTEgNTkgLTMgMTAgLTMKLTEwOHoiLz4KPHBhdGggZD0iTTY5MzQgNDgxMCBjMCAtMTI0IDIgLTE3NCAzIC0xMTIgMiA2MSAyIDE2MyAwIDIyNSAtMSA2MSAtMyAxMSAtMwotMTEzeiIvPgo8cGF0aCBkPSJNMzI1NiAzNjk0IGMtNjUgLTIxIC0xNDIgLTcxIC0xOTAgLTEyNCAtMjEgLTIzIC02MyAtOTUgLTkzIC0xNTgKLTc3IC0xNjUgLTE1MSAtMjk0IC0yNjkgLTQ3MiAtMjAxIC0zMDQgLTQwMyAtNTIwIC02NDkgLTY5NiAtMTMyIC05NSAtMzQyCi0yMDAgLTQzNSAtMjE5IC01NSAtMTEgLTE1MSAtNjAgLTE5OSAtMTAxIC0xMTEgLTk1IC0xNzAgLTI2NyAtMTQxIC00MDkgNjIKLTMwNiA0MDYgLTQ1MyA2NjAgLTI4MyA4OCA1OSAxNDIgMTM2IDE4NCAyNjggNzYgMjM0IDIxMyA0NTEgNDI1IDY3MyAyNTUgMjY2CjU4MCA0OTcgOTU4IDY3OSA5OSA0OCAxMzYgNzIgMTgxIDExNyAyMTIgMjE1IDE0NyA1NzUgLTEyOCA3MDUgLTU2IDI2IC03OCAzMQotMTYwIDMzIC02NSAyIC0xMTAgLTIgLTE0NCAtMTN6IG0yMTIgLTIyMyBjODIgLTQyIDEyMiAtMTA3IDEyMiAtMTk4IDAgLTEzNgotMTIyIC0yMzQgLTI1MiAtMjAyIC03MiAxNyAtMTQxIDg2IC0xNTYgMTU1IC0xOCA4NiAzIDE1MCA3MCAyMTMgNTUgNTIgMTQ5CjY2IDIxNiAzMnogbS0xNzA1IC0xNjcyIGM4MyAtMjMgMTQ3IC0xMTEgMTQ3IC0yMDQgMCAtMTg0IC0yMTYgLTI4MyAtMzQ1Ci0xNTggLTUyIDUxIC02OSA4OSAtNjkgMTU4IC0xIDE0NCAxMjggMjQzIDI2NyAyMDR6Ii8+CjxwYXRoIGQ9Ik00IDE2NjUgYzAgLTU1IDEgLTc2IDMgLTQ3IDIgMjkgMiA3NCAwIDEwMCAtMiAyNiAtMyAyIC0zIC01M3oiLz4KPHBhdGggZD0iTTYzNSA2NjAgYzM1MiAtMzUyIDY0MiAtNjQwIDY0NSAtNjQwIDMgMCAtMjgzIDI4OCAtNjM1IDY0MCAtMzUyCjM1MiAtNjQyIDY0MCAtNjQ1IDY0MCAtMyAwIDI4MyAtMjg4IDYzNSAtNjQweiIvPgo8cGF0aCBkPSJNNjI4NSA2MzggbC02NDAgLTY0MyA2NDMgNjQwIGMzNTMgMzUyIDY0MiA2NDEgNjQyIDY0MiAwIDcgLTUwIC00MgotNjQ1IC02Mzl6Ii8+CjxwYXRoIGQ9Ik00NjYzIDEzIGMzMSAtMiA4MyAtMiAxMTUgMCAzMSAyIDUgMyAtNTggMyAtNjMgMCAtODkgLTEgLTU3IC0zeiIvPgo8cGF0aCBkPSJNNTI3MyAzIGMzMSAtMiA4MyAtMiAxMTUgMCAzMSAyIDUgMyAtNTggMyAtNjMgMCAtODkgLTEgLTU3IC0zeiIvPgo8L2c+Cjwvc3ZnPgo=" />
 <style>
   :root{
     --bg:#06080c; --bg-alt:#0a0e15; --panel:#0e131c; --panel2:#131a26;
-    --border:#1f2937; --border-bright:#2a3648;
-    --text:#e6ebf3; --muted:#8a97ab;
-    --accent:#00ff41; --accent-dim:rgba(0,255,65,.12);
-    --amber:#ffb020; --red:#ff4d4d; --blue:#39a0ff;
-    --radius:2px;
+    --border:#1c2634; --border-bright:#2a3648;
+    --text:#e6ebf3; --muted:#8593a6; --faint:#5b6779;
+    --accent:#00ff41; --accent-dim:rgba(0,255,65,.10);
+    --amber:#ffb020; --red:#ff5964; --blue:#4aa8ff;
+    --radius:3px;
     --display:'Chakra Petch',ui-monospace,monospace;
-    --mono:'IBM Plex Mono',ui-monospace,'Cascadia Code',Consolas,monospace;
+    --mono:'IBM Plex Mono',ui-monospace,Consolas,monospace;
     --sans:'IBM Plex Sans',system-ui,-apple-system,sans-serif;
+    --maxw:1180px;
   }
   *{box-sizing:border-box;margin:0;padding:0}
-  body{background:var(--bg);color:var(--text);font-family:var(--sans);
-    padding:28px 30px 40px;min-height:100vh;-webkit-font-smoothing:antialiased}
-  body::before{content:"";position:fixed;inset:0 0 auto 0;height:2px;background:var(--accent);
-    box-shadow:0 0 14px rgba(0,255,65,.55);z-index:60}
-  .serif{font-family:var(--display)}
-  h3.sec{font-family:var(--mono);font-size:10px;letter-spacing:.18em;color:var(--accent);font-weight:600;
-    text-transform:uppercase;margin-bottom:12px;padding-bottom:9px;border-bottom:1px solid var(--border);display:flex;gap:9px;align-items:center;justify-content:space-between}
-  .sim-tag{font-family:var(--mono);font-size:9px;letter-spacing:.14em;color:var(--amber);border:1px solid var(--amber);
-    border-radius:var(--radius);padding:2px 6px;text-transform:uppercase;opacity:.8}
+  body{background:var(--bg);color:var(--text);font-family:var(--sans);min-height:100vh;-webkit-font-smoothing:antialiased;line-height:1.5}
+  .wrap{max-width:var(--maxw);margin:0 auto;padding:0 26px}
+  a{color:inherit}
 
-  .head{display:flex;align-items:center;gap:14px;margin-bottom:2px}
-  .logo{width:40px;height:40px;flex:none}
-  .wordmark{font-family:var(--display);font-size:21px;font-weight:600;letter-spacing:.13em;color:var(--text);line-height:1}
-  .wordmark .prod{color:var(--accent);text-shadow:0 0 14px rgba(0,255,65,.45)}
-  .thesis{font-family:var(--display);font-size:15px;letter-spacing:.02em;color:var(--text);margin:12px 0 3px 54px}
-  .thesis b{color:var(--accent)}
-  .subline{font-family:var(--mono);color:var(--muted);font-size:11px;letter-spacing:.08em;margin:0 0 20px 54px}
+  /* ---------- Header + nav ---------- */
+  header{position:sticky;top:0;z-index:50;background:rgba(6,8,12,.92);backdrop-filter:blur(8px);
+    border-bottom:1px solid var(--border)}
+  header::before{content:"";position:absolute;inset:0 0 auto 0;height:2px;background:var(--accent);box-shadow:0 0 14px rgba(0,255,65,.5)}
+  .hbar{display:flex;align-items:center;gap:16px;padding:15px 0 0}
+  .logo{width:34px;height:34px;flex:none}
+  .wordmark{font-family:var(--display);font-size:18px;font-weight:600;letter-spacing:.13em;line-height:1}
+  .wordmark .prod{color:var(--accent);text-shadow:0 0 12px rgba(0,255,65,.4)}
+  .hspace{flex:1}
+  .chip{display:flex;align-items:center;gap:9px;font-family:var(--mono);font-size:11px;color:var(--muted);
+    border:1px solid var(--border);border-radius:999px;padding:6px 13px;white-space:nowrap}
+  .chip b{font-family:var(--display);color:var(--text);letter-spacing:.04em}
+  .chip .sep{color:var(--faint)}
+  .chip .pill{font-size:9px;font-weight:600;letter-spacing:.1em;padding:2px 7px;border-radius:999px;text-transform:uppercase}
+  .nav{display:flex;gap:4px;padding:12px 0 0;overflow-x:auto}
+  .nav button{background:none;border:0;border-bottom:2px solid transparent;color:var(--muted);
+    font-family:var(--display);font-size:13px;font-weight:500;letter-spacing:.06em;text-transform:uppercase;
+    padding:11px 15px;cursor:pointer;transition:color .15s,border-color .15s;white-space:nowrap}
+  .nav button:hover{color:var(--text)}
+  .nav button.on{color:var(--accent);border-color:var(--accent)}
 
-  .panel{background:var(--panel);border:1px solid var(--border);border-radius:var(--radius);padding:15px 18px}
+  /* ---------- Generic ---------- */
+  main{padding:26px 0 60px}
+  .page{display:none}
+  .page.on{display:block;animation:fade .25s ease}
+  @keyframes fade{from{opacity:0;transform:translateY(4px)}to{opacity:1;transform:none}}
+  .panel{background:var(--panel);border:1px solid var(--border);border-radius:var(--radius);padding:20px 22px}
   .stack{display:flex;flex-direction:column;gap:16px}
+  .grid2{display:grid;grid-template-columns:1fr 1fr;gap:16px}
+  @media(max-width:820px){.grid2{grid-template-columns:1fr}}
+  .eyebrow{font-family:var(--mono);font-size:10px;letter-spacing:.16em;text-transform:uppercase;color:var(--muted);
+    display:flex;align-items:center;gap:9px;margin-bottom:14px}
+  .eyebrow.act{color:var(--accent)}
+  .sim{font-family:var(--mono);font-size:8.5px;letter-spacing:.12em;color:var(--amber);border:1px solid var(--amber);
+    border-radius:3px;padding:2px 6px;text-transform:uppercase;opacity:.75}
+  .muted{color:var(--muted)}
+  .lead{font-size:14.5px;color:var(--muted);line-height:1.6;max-width:70ch}
+  .dot{width:9px;height:9px;border-radius:50%;display:inline-block}
 
-  /* Mission control */
-  .mctl{display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:16px}
-  .ctl-lab{font-family:var(--mono);font-size:10px;letter-spacing:.14em;text-transform:uppercase;color:var(--muted);margin-bottom:9px;display:block}
-  .seg{display:flex;flex-wrap:wrap;gap:7px}
-  .seg button{background:transparent;color:var(--text);border:1px solid var(--border-bright);border-radius:var(--radius);
-    padding:9px 12px;font-family:var(--display);font-size:12px;font-weight:500;letter-spacing:.04em;cursor:pointer;
-    transition:border-color .15s,color .15s,background .15s;flex:1 1 auto;text-align:center;white-space:nowrap}
-  .seg button:hover{border-color:var(--accent);color:var(--accent)}
-  .seg button.on{background:var(--accent);color:var(--bg);border-color:var(--accent);box-shadow:0 0 14px rgba(0,255,65,.28)}
-  .seg.states button.on{background:var(--amber);border-color:var(--amber);box-shadow:0 0 14px rgba(255,176,32,.28)}
-
-  .controls{display:flex;gap:9px;flex-wrap:wrap;margin-bottom:16px;align-items:center}
-  .controls button{background:transparent;color:var(--text);border:1px solid var(--border-bright);
-    border-radius:var(--radius);padding:10px 13px;font-family:var(--display);font-size:11.5px;font-weight:500;
-    letter-spacing:.05em;cursor:pointer;transition:border-color .15s,color .15s}
-  .controls button:hover{border-color:var(--accent);color:var(--accent)}
-  .controls button.bad:hover{border-color:var(--red);color:var(--red)}
-  .controls button.good:hover{border-color:var(--accent);color:var(--accent)}
-  .controls .spacer{flex:1}
-  .controls .grp{font-family:var(--mono);font-size:9.5px;letter-spacing:.14em;text-transform:uppercase;color:var(--muted);margin-right:1px}
-
-  /* Hero hierarchy */
-  .hero{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:12px;margin-bottom:16px}
-  .htile{background:var(--panel);border:1px solid var(--border);border-radius:var(--radius);padding:14px 15px}
-  .htile .lab{font-family:var(--mono);font-size:9.5px;letter-spacing:.14em;text-transform:uppercase;color:var(--muted)}
-  .htile .val{font-family:var(--display);font-size:19px;font-weight:600;letter-spacing:.03em;margin-top:6px;line-height:1.12}
-  .htile .meta{font-family:var(--mono);font-size:10.5px;color:var(--muted);margin-top:5px;line-height:1.4}
-  .htile.accent{border-color:var(--accent);box-shadow:0 0 0 1px var(--accent-dim)}
-  .htile.accent .lab{color:var(--accent)}
-
-  .dot{width:12px;height:12px;border-radius:50%;display:inline-block;vertical-align:middle;margin-right:7px}
-
-  /* Comparison */
-  .cmp{display:grid;grid-template-columns:1fr auto 1fr;gap:14px;align-items:stretch;margin-bottom:12px}
-  .cmp-side{border:1px solid var(--border);border-radius:var(--radius);padding:15px 17px;background:var(--bg-alt)}
-  .cmp-side .lab{font-family:var(--mono);font-size:9.5px;letter-spacing:.13em;text-transform:uppercase;color:var(--muted)}
-  .cmp-side .pick{font-family:var(--display);font-size:30px;font-weight:700;letter-spacing:.03em;margin-top:8px;line-height:1}
-  .cmp-side .note{font-family:var(--mono);font-size:10.5px;color:var(--muted);margin-top:8px}
-  .cmp-side.mission{border-color:var(--accent)}
-  .cmp-vs{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:8px;min-width:96px}
-  .cmp-op{font-family:var(--display);font-size:30px;font-weight:700;color:var(--muted)}
-  .ovr-badge{font-family:var(--display);font-size:10px;font-weight:600;letter-spacing:.12em;padding:4px 9px;border-radius:var(--radius);
-    text-transform:uppercase;text-align:center;line-height:1.3}
-  .ovr-yes{background:var(--accent);color:var(--bg);box-shadow:0 0 14px rgba(0,255,65,.35)}
-  .ovr-no{border:1px solid var(--border-bright);color:var(--muted)}
-
-  .infl-wrap{margin-top:4px}
-  .infl-top{display:flex;justify-content:space-between;align-items:baseline;font-family:var(--mono);font-size:11px;color:var(--muted);letter-spacing:.06em}
+  /* ---------- Overview ---------- */
+  .thesis{font-family:var(--display);font-size:clamp(20px,3.2vw,30px);font-weight:600;letter-spacing:.01em;line-height:1.25;margin-bottom:6px}
+  .thesis b{color:var(--accent);text-shadow:0 0 18px rgba(0,255,65,.25)}
+  .verdict{display:grid;grid-template-columns:1fr auto 1fr;gap:16px;align-items:stretch;margin:24px 0 18px}
+  @media(max-width:760px){.verdict{grid-template-columns:1fr}}
+  .vcard{border:1px solid var(--border);border-radius:var(--radius);padding:20px 22px;background:var(--bg-alt)}
+  .vcard.mission{border-color:var(--accent);box-shadow:0 0 0 1px var(--accent-dim)}
+  .vlab{font-family:var(--mono);font-size:10px;letter-spacing:.13em;text-transform:uppercase;color:var(--muted)}
+  .vpick{font-family:var(--display);font-size:42px;font-weight:700;letter-spacing:.02em;line-height:1;margin-top:10px}
+  .vnote{font-family:var(--mono);font-size:11.5px;color:var(--muted);margin-top:10px;line-height:1.5}
+  .vmid{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:10px;min-width:110px}
+  .vop{font-family:var(--display);font-size:34px;font-weight:700;color:var(--faint)}
+  .obadge{font-family:var(--display);font-size:10px;font-weight:600;letter-spacing:.11em;text-transform:uppercase;
+    padding:5px 11px;border-radius:999px;text-align:center;line-height:1.3}
+  .obadge.yes{background:var(--accent);color:var(--bg);box-shadow:0 0 16px rgba(0,255,65,.35)}
+  .obadge.no{border:1px solid var(--border-bright);color:var(--muted)}
+  .reasonline{font-size:15px;line-height:1.6;margin-top:4px}
+  .infl{margin-top:20px}
+  .infl-top{display:flex;justify-content:space-between;align-items:baseline;font-family:var(--mono);font-size:11px;color:var(--muted);letter-spacing:.05em}
   .infl-top b{font-family:var(--display);font-size:15px;letter-spacing:.05em}
-  .infl-bar{height:8px;background:var(--bg-alt);border-radius:var(--radius);overflow:hidden;margin-top:8px;border:1px solid var(--border)}
+  .infl-bar{height:8px;background:var(--bg-alt);border:1px solid var(--border);border-radius:999px;overflow:hidden;margin-top:9px}
   .infl-bar>i{display:block;height:100%;transition:width .5s ease}
+  .tiles{display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:14px;margin-top:22px}
+  .tile{border:1px solid var(--border);border-radius:var(--radius);padding:16px 18px;background:var(--panel)}
+  .tile .k{font-family:var(--mono);font-size:9.5px;letter-spacing:.13em;text-transform:uppercase;color:var(--muted)}
+  .tile .v{font-family:var(--display);font-size:19px;font-weight:600;margin-top:7px;line-height:1.15}
+  .tile .s{font-family:var(--mono);font-size:11px;color:var(--muted);margin-top:5px}
 
-  /* Layout grid */
-  .grid{display:grid;grid-template-columns:1.35fr 1fr;gap:16px;align-items:start}
-  @media (max-width:900px){ .grid{grid-template-columns:1fr} .mctl{grid-template-columns:1fr} .cmp{grid-template-columns:1fr} .cmp-vs{flex-direction:row;min-width:0} }
+  /* ---------- Segmented controls ---------- */
+  .field{margin-bottom:20px}
+  .field:last-child{margin-bottom:0}
+  .seg{display:flex;flex-wrap:wrap;gap:8px}
+  .seg button{flex:1 1 auto;min-width:130px;background:transparent;color:var(--text);border:1px solid var(--border-bright);
+    border-radius:var(--radius);padding:13px 14px;font-family:var(--display);font-size:13px;font-weight:500;letter-spacing:.03em;
+    cursor:pointer;transition:.15s;text-align:left}
+  .seg button small{display:block;font-family:var(--mono);font-size:9.5px;color:var(--faint);margin-top:4px;letter-spacing:.02em;font-weight:400;text-transform:none}
+  .seg button:hover{border-color:var(--accent)}
+  .seg button.on{border-color:var(--accent);background:var(--accent-dim)}
+  .seg button.on small{color:var(--muted)}
+  .seg.states button.on{border-color:var(--amber);background:rgba(255,176,32,.10)}
 
-  /* Bearer cards */
-  .cards{display:flex;flex-direction:column;gap:11px}
-  .card{background:var(--panel);border:1px solid var(--border);border-radius:var(--radius);padding:14px 16px;position:relative}
-  .card.act{border-color:var(--accent);box-shadow:0 0 0 1px var(--accent-dim),0 0 18px rgba(0,255,65,.08)}
-  .card.act::before{content:"";position:absolute;left:0;top:0;bottom:0;width:2px;background:var(--accent);box-shadow:0 0 10px var(--accent)}
-  .card-top{display:grid;grid-template-columns:1.2fr auto auto;gap:12px;align-items:center}
-  .b-name{font-family:var(--display);font-size:18px;font-weight:600;letter-spacing:.04em}
-  .b-kind{font-family:var(--mono);color:var(--muted);font-size:9.5px;text-transform:uppercase;letter-spacing:.13em;margin-top:3px}
-  .b-eff{font-family:var(--display);font-size:27px;font-weight:700;line-height:1;text-align:right}
-  .b-eff small{display:block;font-family:var(--mono);font-size:8px;color:var(--muted);letter-spacing:.14em;font-weight:400;margin-top:4px}
-  .role{justify-self:end;font-family:var(--mono);font-size:9px;font-weight:600;letter-spacing:.1em;padding:5px 10px;border-radius:var(--radius);border:1px solid transparent}
-  .b-break{display:flex;gap:8px;align-items:center;margin-top:11px;flex-wrap:wrap;font-family:var(--mono);font-size:10.5px;color:var(--muted)}
-  .b-break .chip{border:1px solid var(--border);border-radius:var(--radius);padding:4px 8px}
-  .b-break .chip b{font-family:var(--mono);color:var(--text);font-weight:600}
-  .b-break .op{color:var(--muted);font-weight:600}
-  .b-break .eff b{color:var(--accent)}
-  .b-metrics{display:flex;gap:16px;margin-top:11px;font-family:var(--mono);font-size:10.5px;color:var(--muted)}
-  .b-metrics b{color:var(--text);font-weight:600;font-size:12.5px}
-  .bar{height:4px;background:var(--bg-alt);overflow:hidden;margin-top:11px;border-radius:var(--radius)}
-  .bar>i{display:block;height:100%}
+  .scen{display:grid;grid-template-columns:repeat(auto-fit,minmax(210px,1fr));gap:10px}
+  .scen button{text-align:left;background:transparent;border:1px solid var(--border-bright);border-radius:var(--radius);
+    padding:14px 15px;cursor:pointer;transition:.15s;color:var(--text)}
+  .scen button:hover{border-color:var(--accent);background:var(--accent-dim)}
+  .scen button b{font-family:var(--display);font-size:13px;font-weight:600;letter-spacing:.03em}
+  .scen button span{display:block;font-family:var(--mono);font-size:10.5px;color:var(--muted);margin-top:6px;line-height:1.45}
+  .btnrow{display:flex;gap:9px;flex-wrap:wrap;align-items:center}
+  .btn{background:transparent;border:1px solid var(--border-bright);border-radius:var(--radius);color:var(--text);
+    font-family:var(--display);font-size:12px;font-weight:500;letter-spacing:.04em;padding:11px 15px;cursor:pointer;transition:.15s}
+  .btn:hover{border-color:var(--accent);color:var(--accent)}
+  .btn.bad:hover{border-color:var(--red);color:var(--red)}
 
-  /* Reasons */
-  .reasons{display:flex;flex-direction:column;gap:8px}
-  .reason{display:flex;gap:10px;font-family:var(--mono);font-size:12px;line-height:1.4;color:var(--text)}
-  .reason::before{content:"▸";color:var(--accent);flex:none}
+  /* ---------- Bearers ---------- */
+  .bearer{border:1px solid var(--border);border-radius:var(--radius);padding:15px 17px;margin-bottom:11px}
+  .bearer:last-child{margin-bottom:0}
+  .bearer.act{border-color:var(--accent);box-shadow:0 0 0 1px var(--accent-dim)}
+  .btop{display:grid;grid-template-columns:1.3fr auto auto;gap:14px;align-items:center}
+  .bname{font-family:var(--display);font-size:17px;font-weight:600;letter-spacing:.03em}
+  .bkind{font-family:var(--mono);font-size:9.5px;text-transform:uppercase;letter-spacing:.12em;color:var(--muted);margin-top:3px}
+  .beff{font-family:var(--display);font-size:26px;font-weight:700;line-height:1;text-align:right}
+  .beff small{display:block;font-family:var(--mono);font-size:8px;letter-spacing:.13em;color:var(--muted);margin-top:4px;font-weight:400}
+  .role{font-family:var(--mono);font-size:9px;font-weight:600;letter-spacing:.1em;padding:5px 10px;border-radius:999px;border:1px solid transparent;justify-self:end}
+  .bcalc{display:flex;gap:7px;align-items:center;flex-wrap:wrap;margin-top:12px;font-family:var(--mono);font-size:10.5px;color:var(--muted)}
+  .bcalc .c{border:1px solid var(--border);border-radius:3px;padding:4px 9px}
+  .bcalc .c b{color:var(--text)}
+  .bcalc .eq b{color:var(--accent)}
+  .bmet{display:flex;gap:18px;margin-top:11px;font-family:var(--mono);font-size:10.5px;color:var(--muted)}
+  .bmet b{color:var(--text);font-size:12.5px}
+  .bbar{height:4px;background:var(--bg-alt);border-radius:999px;overflow:hidden;margin-top:11px}
+  .bbar>i{display:block;height:100%}
 
-  /* Traffic policy */
-  .trow{display:grid;grid-template-columns:1fr auto auto;gap:10px;align-items:center;padding:8px 0;border-bottom:1px dashed var(--border)}
+  /* ---------- Traffic ---------- */
+  .trow{display:grid;grid-template-columns:1fr auto auto;gap:12px;align-items:center;padding:9px 0;border-bottom:1px solid var(--border)}
   .trow:last-child{border-bottom:none}
-  .tname{font-family:var(--sans);font-size:13px}
-  .tpri{font-family:var(--mono);font-size:9px;letter-spacing:.1em;color:var(--muted);text-transform:uppercase}
-  .toc{font-family:var(--display);font-size:10px;font-weight:600;letter-spacing:.08em;padding:4px 9px;border-radius:var(--radius);text-transform:uppercase;justify-self:end;min-width:92px;text-align:center}
+  .tn{font-size:13.5px}
+  .tp{font-family:var(--mono);font-size:9px;letter-spacing:.09em;color:var(--faint);text-transform:uppercase}
+  .toc{font-family:var(--display);font-size:10px;font-weight:600;letter-spacing:.07em;padding:5px 10px;border-radius:999px;text-transform:uppercase;min-width:96px;text-align:center;justify-self:end}
 
-  /* Hysteresis */
-  .hgrid{display:grid;grid-template-columns:1fr 1fr;gap:9px 16px}
-  .hg{display:flex;justify-content:space-between;gap:8px;font-family:var(--mono);font-size:11.5px;padding:5px 0;border-bottom:1px dashed var(--border)}
-  .hg span{color:var(--muted)} .hg b{color:var(--text);font-weight:600;font-variant-numeric:tabular-nums}
-  .hnote{font-family:var(--mono);font-size:10.5px;color:var(--muted);margin-top:10px;line-height:1.5}
+  /* ---------- Hysteresis ---------- */
+  .hg{display:flex;justify-content:space-between;gap:10px;font-family:var(--mono);font-size:11.5px;padding:7px 0;border-bottom:1px solid var(--border)}
+  .hg:last-child{border-bottom:none}
+  .hg span{color:var(--muted)} .hg b{font-variant-numeric:tabular-nums}
 
-  /* Timeline */
-  .tl{display:flex;flex-direction:column}
-  .tlr{display:grid;grid-template-columns:58px 78px 1fr;gap:10px;padding:9px 0;border-bottom:1px dashed var(--border);align-items:start}
-  .tlr:last-child{border-bottom:none}
-  .tlt{font-family:var(--mono);font-size:10px;color:var(--muted);font-variant-numeric:tabular-nums}
-  .tlstate{font-family:var(--mono);font-size:9px;font-weight:600;letter-spacing:.06em;padding:3px 6px;border-radius:var(--radius);text-align:center;height:fit-content}
-  .tld{font-family:var(--mono);font-size:11.5px;line-height:1.45}
-  .tld .act{font-weight:600}
-  .tld .rsn{color:var(--muted)}
+  /* ---------- Logs ---------- */
+  .tl-row{display:grid;grid-template-columns:64px 84px 1fr;gap:12px;padding:11px 0;border-bottom:1px solid var(--border);align-items:start}
+  .tl-row:last-child{border-bottom:none}
+  .tl-t{font-family:var(--mono);font-size:10.5px;color:var(--muted);font-variant-numeric:tabular-nums}
+  .tl-s{font-family:var(--mono);font-size:9px;font-weight:600;letter-spacing:.05em;padding:3px 7px;border-radius:999px;text-align:center;height:fit-content}
+  .tl-d{font-family:var(--mono);font-size:12px;line-height:1.5}
+  .tl-d .rsn{color:var(--muted)}
+  .ev{display:flex;gap:11px;padding:8px 0;border-bottom:1px dashed var(--border);font-family:var(--mono);font-size:11.5px}
+  .ev:last-child{border-bottom:none}
+  .ev .et{color:var(--muted);width:60px;flex:none}
 
-  /* Architecture diagram */
-  .arch{display:flex;flex-direction:column;align-items:center;gap:0;padding:6px 0}
+  /* ---------- Architecture ---------- */
+  .arch{display:flex;flex-direction:column;align-items:center;gap:0}
   .arow{display:flex;gap:10px;flex-wrap:wrap;justify-content:center}
-  .abox{border:1px solid var(--border-bright);border-radius:var(--radius);padding:9px 14px;font-family:var(--mono);font-size:11px;
-    color:var(--text);background:var(--bg-alt);text-align:center;letter-spacing:.03em}
+  .abox{border:1px solid var(--border-bright);border-radius:var(--radius);padding:10px 15px;font-family:var(--mono);font-size:11.5px;background:var(--bg-alt);text-align:center}
+  .abox small{display:block;color:var(--faint);font-size:9px;margin-top:2px;letter-spacing:.06em}
   .abox.in{border-color:var(--blue);color:var(--blue)}
-  .abox.eng{border-color:var(--accent);color:var(--accent);font-family:var(--display);font-weight:600;letter-spacing:.06em;font-size:12px}
+  .abox.eng{border-color:var(--accent);color:var(--accent);font-family:var(--display);font-weight:600;letter-spacing:.05em}
   .abox.out{border-color:var(--amber);color:var(--amber)}
-  .aarrow{color:var(--muted);font-size:16px;margin:7px 0;line-height:1}
-  .abox small{display:block;color:var(--muted);font-size:9px;margin-top:2px;letter-spacing:.08em}
+  .aar{color:var(--faint);font-size:16px;margin:8px 0}
 
-  .about{background:var(--panel);border:1px solid var(--border);border-left:2px solid var(--accent);border-radius:var(--radius);padding:16px 18px;margin-top:16px}
-  .about p{font-family:var(--sans);color:var(--muted);font-size:12.5px;line-height:1.65;margin-bottom:8px}
-  .about p:last-child{margin-bottom:0}
-  .foot{font-family:var(--mono);color:var(--muted);font-size:10px;margin-top:18px;letter-spacing:.09em;text-transform:uppercase;padding-top:14px;border-top:1px solid var(--border);display:flex;justify-content:space-between;gap:12px;flex-wrap:wrap}
-  .foot a{color:var(--muted);text-decoration:none;border-bottom:1px solid var(--border-bright)}
-  .foot a:hover{color:var(--accent);border-color:var(--accent)}
+  .help h4{font-family:var(--display);font-size:15px;font-weight:600;letter-spacing:.02em;margin:22px 0 8px}
+  .help h4:first-child{margin-top:0}
+  .help p{color:var(--muted);font-size:13.5px;line-height:1.65;margin-bottom:10px;max-width:76ch}
+  .help .glo{display:grid;grid-template-columns:auto 1fr;gap:6px 16px;font-size:13px;margin-top:6px}
+  .help .glo dt{font-family:var(--display);color:var(--text);letter-spacing:.02em}
+  .help .glo dd{color:var(--muted)}
 
-  /* Scripted-demo banner */
-  .demobar{background:var(--panel);border:1px solid var(--border);border-left:2px solid var(--accent);border-radius:var(--radius);padding:12px 17px;margin-bottom:16px}
-  .demo-cap{font-family:var(--mono);font-size:12.5px;display:flex;align-items:center;gap:11px;line-height:1.45;color:var(--text)}
-  .demo-badge{background:var(--accent);color:var(--bg);font-family:var(--display);font-size:10px;font-weight:600;letter-spacing:.14em;padding:3px 9px;border-radius:var(--radius);flex:none}
-  .demo-prog{height:4px;background:var(--bg-alt);overflow:hidden;margin-top:10px}
-  .demo-prog>i{display:block;height:100%;background:var(--accent);width:0;transition:width .5s linear;box-shadow:0 0 10px rgba(0,255,65,.6)}
-  .demo-meta{font-family:var(--mono);color:var(--muted);font-size:10px;margin-top:7px;letter-spacing:.05em;font-variant-numeric:tabular-nums}
+  .demobar{display:flex;align-items:center;gap:12px;font-family:var(--mono);font-size:12px;color:var(--muted);
+    border:1px solid var(--border);border-left:2px solid var(--accent);border-radius:var(--radius);padding:11px 15px;margin-bottom:18px}
+  .demobar .b{font-family:var(--display);font-size:9px;font-weight:600;letter-spacing:.13em;padding:3px 8px;border-radius:3px;flex:none}
+  .foot{border-top:1px solid var(--border);margin-top:34px;padding-top:16px;font-family:var(--mono);font-size:10px;letter-spacing:.08em;text-transform:uppercase;color:var(--faint);display:flex;justify-content:space-between;gap:12px;flex-wrap:wrap}
 </style>
 </head>
 <body>
-  <div class="head">
-    <div class="logo" style="background:url('data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCA2OTUgNjk1IiByb2xlPSJpbWciIGFyaWEtbGFiZWw9IkpFR0FTRUMgbWFyayI+CiAgPGRlZnM+CiAgICA8bGluZWFyR3JhZGllbnQgaWQ9ImpzZyIgeDE9IjEiIHkxPSIwIiB4Mj0iMCIgeTI9IjEiPgogICAgICA8c3RvcCBvZmZzZXQ9IjAiIHN0b3AtY29sb3I9IiMwMEEwNTAiLz4KICAgICAgPHN0b3Agb2Zmc2V0PSIxIiBzdG9wLWNvbG9yPSIjMzlGRjE0Ii8+CiAgICA8L2xpbmVhckdyYWRpZW50PgogIDwvZGVmcz4KICA8cGF0aCBkPSJNMTI4LDAgTDU2NywwIEw2OTUsMTI4IEw2OTUsNTY3IEw1NjcsNjk1IEwxMjgsNjk1IEwwLDU2NyBMMCwxMjggWiIgZmlsbD0idXJsKCNqc2cpIi8+CiAgPGcgdHJhbnNmb3JtPSJ0cmFuc2xhdGUoMC4wMDAwMDAsNjk1LjAwMDAwMCkgc2NhbGUoMC4xMDAwMDAsLTAuMTAwMDAwKSIKZmlsbD0iIzAwMDAwMCIgc3Ryb2tlPSJub25lIj4KPHBhdGggZD0iTTE1MDIgNjk0MyBjMzcgLTIgMTAwIC0yIDE0MCAwIDQwIDEgMTAgMyAtNjcgMyAtNzcgMCAtMTEwIC0xIC03MwotM3oiLz4KPHBhdGggZD0iTTQwMzIgNjkzMCBsMTYzOCAtNSA2NDIgLTY0MCA2NDMgLTY0MCAtNjQ1IDY0OCAtNjQ1IDY0NyAtMTYzNSAtMgotMTYzNSAtMyAxNjM3IC01eiIvPgo8cGF0aCBkPSJNNTAyMCA1ODI5IGMtMTUzIC0xMSAtMzAzIC03MCAtNDcwIC0xODMgLTMwOCAtMjEwIC03MzAgLTM2MSAtMTE3NQotNDIyIC0xNzggLTI1IC02MzMgLTI1IC04MjAgLTEgLTI2OCAzNSAtNDc1IDc5IC02OTMgMTQ4IC02NSAyMCAtMTEzIDI5IC0xNjEKMjkgLTE3MCAwIC0zMTggLTk0IC0zODcgLTI0NSAtMTAwIC0yMTkgLTEyIC00NjUgMjA1IC01NzMgNzIgLTM2IDc5IC0zNyAxNzUKLTM2IDkwIDEgMTEzIDUgMjA1IDM4IDIxNiA3NiA1NDcgMTQ0IDgwNiAxNjYgMjQ1IDIwIDU0MyAxMCA3NjUgLTI2IDE5NSAtMzIKNDY3IC0xMDcgNTY0IC0xNTYgMTQwIC03MSAzNjMgLTI0NCA0ODYgLTM3NiAxNzAgLTE4NCAyNjMgLTM0MCAzMjQgLTU0NyAxMzYKLTQ2MyAxNDggLTkwNyAzNiAtMTM4MCAtMzggLTE2MiAtOTIgLTMyNCAtMTUyIC00NjMgLTQ1IC0xMDIgLTUxIC0xMjYgLTU1Ci0yMDEgLTggLTE0NCAzOSAtMjY2IDEzNyAtMzUzIDI0NiAtMjE5IDYyMSAtMTAyIDcwNSAyMTkgMjAgNzUgMTggMTQzIC00IDIyMwotMTM3IDQ4NiAtMTg3IDg5NCAtMTYxIDEzMTUgMzIgNTI4IDE3MCAxMDAwIDQwNSAxMzg1IDE2MSAyNjQgMTkxIDM0MyAyMDIKNTMyIDI3IDQ3OSAtMzI0IDg3NSAtODA3IDkxMCAtMjUgMiAtODMgMSAtMTMwIC0zeiBtMTU3IC00MzggYzIxOCAtNDIgMzcwCi0yNTQgMzQzIC00NzcgLTI4IC0yMzAgLTI1MyAtNDAwIC00ODIgLTM2NCAtMzU2IDU1IC00OTIgNDg3IC0yMzAgNzMyIDEwMiA5NgoyMzMgMTM0IDM2OSAxMDl6IG0tMzM4OSAtMjMwIGMxNDQgLTc0IDE1NSAtMjc5IDIwIC0zNjkgLTM2IC0yMyAtNTIgLTI3IC0xMTQKLTI3IC02NSAwIC03NiAzIC0xMTUgMzEgLTEwOCA3OCAtMTIxIDI0MyAtMjcgMzMxIDYwIDU2IDE2NCA3MSAyMzYgMzR6IG0zMzg5Ci0zMzkyIGMxMiAtNCA0MCAtMjQgNjIgLTQ1IDE0MCAtMTI2IDQ4IC0zNjMgLTE0MSAtMzY0IC02MCAwIC05NSAxMyAtMTM2IDUzCi00OCA0NiAtNzIgOTggLTcyIDE1NyAwIDE1MSAxNDYgMjUyIDI4NyAxOTl6Ii8+CjxwYXRoIGQ9Ik02OTQ0IDU0MDAgYzAgLTExOCAyIC0xNjcgMyAtMTA3IDIgNTkgMiAxNTUgMCAyMTUgLTEgNTkgLTMgMTAgLTMKLTEwOHoiLz4KPHBhdGggZD0iTTY5MzQgNDgxMCBjMCAtMTI0IDIgLTE3NCAzIC0xMTIgMiA2MSAyIDE2MyAwIDIyNSAtMSA2MSAtMyAxMSAtMwotMTEzeiIvPgo8cGF0aCBkPSJNMzI1NiAzNjk0IGMtNjUgLTIxIC0xNDIgLTcxIC0xOTAgLTEyNCAtMjEgLTIzIC02MyAtOTUgLTkzIC0xNTgKLTc3IC0xNjUgLTE1MSAtMjk0IC0yNjkgLTQ3MiAtMjAxIC0zMDQgLTQwMyAtNTIwIC02NDkgLTY5NiAtMTMyIC05NSAtMzQyCi0yMDAgLTQzNSAtMjE5IC01NSAtMTEgLTE1MSAtNjAgLTE5OSAtMTAxIC0xMTEgLTk1IC0xNzAgLTI2NyAtMTQxIC00MDkgNjIKLTMwNiA0MDYgLTQ1MyA2NjAgLTI4MyA4OCA1OSAxNDIgMTM2IDE4NCAyNjggNzYgMjM0IDIxMyA0NTEgNDI1IDY3MyAyNTUgMjY2CjU4MCA0OTcgOTU4IDY3OSA5OSA0OCAxMzYgNzIgMTgxIDExNyAyMTIgMjE1IDE0NyA1NzUgLTEyOCA3MDUgLTU2IDI2IC03OCAzMQotMTYwIDMzIC02NSAyIC0xMTAgLTIgLTE0NCAtMTN6IG0yMTIgLTIyMyBjODIgLTQyIDEyMiAtMTA3IDEyMiAtMTk4IDAgLTEzNgotMTIyIC0yMzQgLTI1MiAtMjAyIC03MiAxNyAtMTQxIDg2IC0xNTYgMTU1IC0xOCA4NiAzIDE1MCA3MCAyMTMgNTUgNTIgMTQ5CjY2IDIxNiAzMnogbS0xNzA1IC0xNjcyIGM4MyAtMjMgMTQ3IC0xMTEgMTQ3IC0yMDQgMCAtMTg0IC0yMTYgLTI4MyAtMzQ1Ci0xNTggLTUyIDUxIC02OSA4OSAtNjkgMTU4IC0xIDE0NCAxMjggMjQzIDI2NyAyMDR6Ii8+CjxwYXRoIGQ9Ik00IDE2NjUgYzAgLTU1IDEgLTc2IDMgLTQ3IDIgMjkgMiA3NCAwIDEwMCAtMiAyNiAtMyAyIC0zIC01M3oiLz4KPHBhdGggZD0iTTYzNSA2NjAgYzM1MiAtMzUyIDY0MiAtNjQwIDY0NSAtNjQwIDMgMCAtMjgzIDI4OCAtNjM1IDY0MCAtMzUyCjM1MiAtNjQyIDY0MCAtNjQ1IDY0MCAtMyAwIDI4MyAtMjg4IDYzNSAtNjQweiIvPgo8cGF0aCBkPSJNNjI4NSA2MzggbC02NDAgLTY0MyA2NDMgNjQwIGMzNTMgMzUyIDY0MiA2NDEgNjQyIDY0MiAwIDcgLTUwIC00MgotNjQ1IC02Mzl6Ii8+CjxwYXRoIGQ9Ik00NjYzIDEzIGMzMSAtMiA4MyAtMiAxMTUgMCAzMSAyIDUgMyAtNTggMyAtNjMgMCAtODkgLTEgLTU3IC0zeiIvPgo8cGF0aCBkPSJNNTI3MyAzIGMzMSAtMiA4MyAtMiAxMTUgMCAzMSAyIDUgMyAtNTggMyAtNjMgMCAtODkgLTEgLTU3IC0zeiIvPgo8L2c+Cjwvc3ZnPgo=') center/contain no-repeat"></div>
-    <div class="wordmark">JEGASEC&nbsp;<span class="prod">CONTINUITY</span></div>
-  </div>
-  <div class="thesis">Networks optimise for connectivity. <b>Continuity optimises for the mission.</b></div>
-  <div class="subline" id="subline">mission-aware autonomous communications resilience · software demonstrator</div>
-
-  <div class="demobar" id="demobar" style="display:none">
-    <div class="demo-cap"><span class="demo-badge">DEMO</span><span id="demoCap"></span></div>
-    <div class="demo-prog"><i id="demoProg"></i></div>
-    <div class="demo-meta" id="demoMeta"></div>
-  </div>
-
-  <!-- Mission control -->
-  <div class="mctl">
-    <div class="panel">
-      <span class="ctl-lab">Mission profile · simulated</span>
-      <div class="seg profiles" id="segProfiles"></div>
-    </div>
-    <div class="panel">
-      <span class="ctl-lab">Mission state · simulated</span>
-      <div class="seg states" id="segStates"></div>
-    </div>
-  </div>
-
-  <!-- Scenario presets -->
-  <div class="controls" id="mscen">
-    <span class="grp">Mission scenarios</span>
-    <button onclick="missionScenario('routine-mobility')">Routine Mobility</button>
-    <button onclick="missionScenario('coverage-loss')">Coverage Loss</button>
-    <button onclick="missionScenario('mission-priority-override')">Mission Priority Override</button>
-    <button onclick="missionScenario('critical-traffic-event')">Critical Traffic Event</button>
-    <button onclick="missionScenario('contested')">Contested Environment</button>
-  </div>
-  <div class="controls" id="controls" style="display:none">
-    <span class="grp">Adversarial scenarios</span>
-    <button class="bad" onclick="scenario('dos')">Denial of Service</button>
-    <button class="bad" onclick="scenario('asat')">SATCOM Unavailable</button>
-    <button class="bad" onclick="scenario('jamming')">RF Jamming / Interference</button>
-    <span class="spacer"></span>
-    <button class="good" onclick="scenario('restore')">Restore &amp; resume</button>
-  </div>
-
-  <!-- Hero hierarchy -->
-  <div class="hero" id="hero"></div>
-
-  <!-- Network-only vs mission-aware -->
-  <div class="panel" style="margin-bottom:16px">
-    <h3 class="sec">Network-only vs mission-aware decision <span class="sim-tag">simulated</span></h3>
-    <div class="cmp">
-      <div class="cmp-side" id="cmpNet">
-        <div class="lab">Network-only recommendation</div>
-        <div class="pick" id="netPick">—</div>
-        <div class="note">optimises for connectivity — lowest latency, highest throughput</div>
+  <header>
+    <div class="wrap">
+      <div class="hbar">
+        <div class="logo" style="background:url('data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCA2OTUgNjk1IiByb2xlPSJpbWciIGFyaWEtbGFiZWw9IkpFR0FTRUMgbWFyayI+CiAgPGRlZnM+CiAgICA8bGluZWFyR3JhZGllbnQgaWQ9ImpzZyIgeDE9IjEiIHkxPSIwIiB4Mj0iMCIgeTI9IjEiPgogICAgICA8c3RvcCBvZmZzZXQ9IjAiIHN0b3AtY29sb3I9IiMwMEEwNTAiLz4KICAgICAgPHN0b3Agb2Zmc2V0PSIxIiBzdG9wLWNvbG9yPSIjMzlGRjE0Ii8+CiAgICA8L2xpbmVhckdyYWRpZW50PgogIDwvZGVmcz4KICA8cGF0aCBkPSJNMTI4LDAgTDU2NywwIEw2OTUsMTI4IEw2OTUsNTY3IEw1NjcsNjk1IEwxMjgsNjk1IEwwLDU2NyBMMCwxMjggWiIgZmlsbD0idXJsKCNqc2cpIi8+CiAgPGcgdHJhbnNmb3JtPSJ0cmFuc2xhdGUoMC4wMDAwMDAsNjk1LjAwMDAwMCkgc2NhbGUoMC4xMDAwMDAsLTAuMTAwMDAwKSIKZmlsbD0iIzAwMDAwMCIgc3Ryb2tlPSJub25lIj4KPHBhdGggZD0iTTE1MDIgNjk0MyBjMzcgLTIgMTAwIC0yIDE0MCAwIDQwIDEgMTAgMyAtNjcgMyAtNzcgMCAtMTEwIC0xIC03MwotM3oiLz4KPHBhdGggZD0iTTQwMzIgNjkzMCBsMTYzOCAtNSA2NDIgLTY0MCA2NDMgLTY0MCAtNjQ1IDY0OCAtNjQ1IDY0NyAtMTYzNSAtMgotMTYzNSAtMyAxNjM3IC01eiIvPgo8cGF0aCBkPSJNNTAyMCA1ODI5IGMtMTUzIC0xMSAtMzAzIC03MCAtNDcwIC0xODMgLTMwOCAtMjEwIC03MzAgLTM2MSAtMTE3NQotNDIyIC0xNzggLTI1IC02MzMgLTI1IC04MjAgLTEgLTI2OCAzNSAtNDc1IDc5IC02OTMgMTQ4IC02NSAyMCAtMTEzIDI5IC0xNjEKMjkgLTE3MCAwIC0zMTggLTk0IC0zODcgLTI0NSAtMTAwIC0yMTkgLTEyIC00NjUgMjA1IC01NzMgNzIgLTM2IDc5IC0zNyAxNzUKLTM2IDkwIDEgMTEzIDUgMjA1IDM4IDIxNiA3NiA1NDcgMTQ0IDgwNiAxNjYgMjQ1IDIwIDU0MyAxMCA3NjUgLTI2IDE5NSAtMzIKNDY3IC0xMDcgNTY0IC0xNTYgMTQwIC03MSAzNjMgLTI0NCA0ODYgLTM3NiAxNzAgLTE4NCAyNjMgLTM0MCAzMjQgLTU0NyAxMzYKLTQ2MyAxNDggLTkwNyAzNiAtMTM4MCAtMzggLTE2MiAtOTIgLTMyNCAtMTUyIC00NjMgLTQ1IC0xMDIgLTUxIC0xMjYgLTU1Ci0yMDEgLTggLTE0NCAzOSAtMjY2IDEzNyAtMzUzIDI0NiAtMjE5IDYyMSAtMTAyIDcwNSAyMTkgMjAgNzUgMTggMTQzIC00IDIyMwotMTM3IDQ4NiAtMTg3IDg5NCAtMTYxIDEzMTUgMzIgNTI4IDE3MCAxMDAwIDQwNSAxMzg1IDE2MSAyNjQgMTkxIDM0MyAyMDIKNTMyIDI3IDQ3OSAtMzI0IDg3NSAtODA3IDkxMCAtMjUgMiAtODMgMSAtMTMwIC0zeiBtMTU3IC00MzggYzIxOCAtNDIgMzcwCi0yNTQgMzQzIC00NzcgLTI4IC0yMzAgLTI1MyAtNDAwIC00ODIgLTM2NCAtMzU2IDU1IC00OTIgNDg3IC0yMzAgNzMyIDEwMiA5NgoyMzMgMTM0IDM2OSAxMDl6IG0tMzM4OSAtMjMwIGMxNDQgLTc0IDE1NSAtMjc5IDIwIC0zNjkgLTM2IC0yMyAtNTIgLTI3IC0xMTQKLTI3IC02NSAwIC03NiAzIC0xMTUgMzEgLTEwOCA3OCAtMTIxIDI0MyAtMjcgMzMxIDYwIDU2IDE2NCA3MSAyMzYgMzR6IG0zMzg5Ci0zMzkyIGMxMiAtNCA0MCAtMjQgNjIgLTQ1IDE0MCAtMTI2IDQ4IC0zNjMgLTE0MSAtMzY0IC02MCAwIC05NSAxMyAtMTM2IDUzCi00OCA0NiAtNzIgOTggLTcyIDE1NyAwIDE1MSAxNDYgMjUyIDI4NyAxOTl6Ii8+CjxwYXRoIGQ9Ik02OTQ0IDU0MDAgYzAgLTExOCAyIC0xNjcgMyAtMTA3IDIgNTkgMiAxNTUgMCAyMTUgLTEgNTkgLTMgMTAgLTMKLTEwOHoiLz4KPHBhdGggZD0iTTY5MzQgNDgxMCBjMCAtMTI0IDIgLTE3NCAzIC0xMTIgMiA2MSAyIDE2MyAwIDIyNSAtMSA2MSAtMyAxMSAtMwotMTEzeiIvPgo8cGF0aCBkPSJNMzI1NiAzNjk0IGMtNjUgLTIxIC0xNDIgLTcxIC0xOTAgLTEyNCAtMjEgLTIzIC02MyAtOTUgLTkzIC0xNTgKLTc3IC0xNjUgLTE1MSAtMjk0IC0yNjkgLTQ3MiAtMjAxIC0zMDQgLTQwMyAtNTIwIC02NDkgLTY5NiAtMTMyIC05NSAtMzQyCi0yMDAgLTQzNSAtMjE5IC01NSAtMTEgLTE1MSAtNjAgLTE5OSAtMTAxIC0xMTEgLTk1IC0xNzAgLTI2NyAtMTQxIC00MDkgNjIKLTMwNiA0MDYgLTQ1MyA2NjAgLTI4MyA4OCA1OSAxNDIgMTM2IDE4NCAyNjggNzYgMjM0IDIxMyA0NTEgNDI1IDY3MyAyNTUgMjY2CjU4MCA0OTcgOTU4IDY3OSA5OSA0OCAxMzYgNzIgMTgxIDExNyAyMTIgMjE1IDE0NyA1NzUgLTEyOCA3MDUgLTU2IDI2IC03OCAzMQotMTYwIDMzIC02NSAyIC0xMTAgLTIgLTE0NCAtMTN6IG0yMTIgLTIyMyBjODIgLTQyIDEyMiAtMTA3IDEyMiAtMTk4IDAgLTEzNgotMTIyIC0yMzQgLTI1MiAtMjAyIC03MiAxNyAtMTQxIDg2IC0xNTYgMTU1IC0xOCA4NiAzIDE1MCA3MCAyMTMgNTUgNTIgMTQ5CjY2IDIxNiAzMnogbS0xNzA1IC0xNjcyIGM4MyAtMjMgMTQ3IC0xMTEgMTQ3IC0yMDQgMCAtMTg0IC0yMTYgLTI4MyAtMzQ1Ci0xNTggLTUyIDUxIC02OSA4OSAtNjkgMTU4IC0xIDE0NCAxMjggMjQzIDI2NyAyMDR6Ii8+CjxwYXRoIGQ9Ik00IDE2NjUgYzAgLTU1IDEgLTc2IDMgLTQ3IDIgMjkgMiA3NCAwIDEwMCAtMiAyNiAtMyAyIC0zIC01M3oiLz4KPHBhdGggZD0iTTYzNSA2NjAgYzM1MiAtMzUyIDY0MiAtNjQwIDY0NSAtNjQwIDMgMCAtMjgzIDI4OCAtNjM1IDY0MCAtMzUyCjM1MiAtNjQyIDY0MCAtNjQ1IDY0MCAtMyAwIDI4MyAtMjg4IDYzNSAtNjQweiIvPgo8cGF0aCBkPSJNNjI4NSA2MzggbC02NDAgLTY0MyA2NDMgNjQwIGMzNTMgMzUyIDY0MiA2NDEgNjQyIDY0MiAwIDcgLTUwIC00MgotNjQ1IC02Mzl6Ii8+CjxwYXRoIGQ9Ik00NjYzIDEzIGMzMSAtMiA4MyAtMiAxMTUgMCAzMSAyIDUgMyAtNTggMyAtNjMgMCAtODkgLTEgLTU3IC0zeiIvPgo8cGF0aCBkPSJNNTI3MyAzIGMzMSAtMiA4MyAtMiAxMTUgMCAzMSAyIDUgMyAtNTggMyAtNjMgMCAtODkgLTEgLTU3IC0zeiIvPgo8L2c+Cjwvc3ZnPgo=') center/contain no-repeat"></div>
+        <div class="wordmark">JEGASEC&nbsp;<span class="prod">CONTINUITY</span></div>
+        <div class="hspace"></div>
+        <div class="chip" id="chip" style="display:none"></div>
       </div>
-      <div class="cmp-vs">
-        <div class="cmp-op" id="cmpOp">=</div>
-        <div class="ovr-badge ovr-no" id="ovrBadge">aligned</div>
-      </div>
-      <div class="cmp-side mission" id="cmpMis">
-        <div class="lab">Mission-aware recommendation</div>
-        <div class="pick" id="misPick" style="color:var(--accent)">—</div>
-        <div class="note" id="misNote">optimises for the mission</div>
-      </div>
+      <nav class="nav" id="nav">
+        <button data-tab="overview" class="on">Overview</button>
+        <button data-tab="selections">Selections</button>
+        <button data-tab="performance">Performance</button>
+        <button data-tab="logs">Logs</button>
+        <button data-tab="help">Help</button>
+      </nav>
     </div>
-    <div class="infl-wrap">
-      <div class="infl-top"><span>MISSION INFLUENCE ON THIS DECISION</span><b id="inflVal">—</b></div>
-      <div class="infl-bar"><i id="inflBar"></i></div>
-    </div>
-  </div>
+  </header>
 
-  <div class="grid">
-    <div class="stack">
+  <main><div class="wrap">
+    <div class="demobar" id="demobar" style="display:none"><span class="b" id="demoBadge">DEMO</span><span id="demoCap"></span></div>
+
+    <!-- ============ OVERVIEW ============ -->
+    <section class="page on" id="tab-overview">
+      <div class="thesis">Networks optimise for connectivity.<br><b>Continuity optimises for the mission.</b></div>
+      <p class="lead">Continuity weighs every available communications bearer against the current mission — not just raw network speed — and autonomously selects the path that best supports the operation. Below is the live decision.</p>
+
+      <div class="verdict">
+        <div class="vcard">
+          <div class="vlab">A network-only system would pick</div>
+          <div class="vpick" id="ovNet">—</div>
+          <div class="vnote">Optimises for connectivity: lowest latency, highest throughput.</div>
+        </div>
+        <div class="vmid">
+          <div class="vop" id="ovOp">=</div>
+          <div class="obadge no" id="ovBadge">aligned</div>
+        </div>
+        <div class="vcard mission">
+          <div class="vlab">Continuity selects</div>
+          <div class="vpick" id="ovMis" style="color:var(--accent)">—</div>
+          <div class="vnote" id="ovMisNote">Optimises for the mission.</div>
+        </div>
+      </div>
+
       <div class="panel">
-        <h3 class="sec">Available bearers · network × mission suitability = effective</h3>
-        <div class="cards" id="cards"></div>
+        <div class="reasonline" id="ovReason">—</div>
+        <div class="infl">
+          <div class="infl-top"><span>HOW MUCH THE MISSION SHAPED THIS DECISION</span><b id="ovInflVal">—</b></div>
+          <div class="infl-bar"><i id="ovInflBar"></i></div>
+        </div>
       </div>
+
+      <div class="tiles" id="ovTiles"></div>
+      <p class="lead" style="margin-top:22px;font-size:13px">Change the mission profile, state or run a one-click scenario on the <a href="#selections" style="color:var(--accent);text-decoration:none">Selections</a> tab and watch this decision update in real time. All bearers and conditions here are simulated — this is a software demonstrator.</p>
+    </section>
+
+    <!-- ============ SELECTIONS ============ -->
+    <section class="page" id="tab-selections">
+      <div class="grid2">
+        <div class="panel">
+          <div class="eyebrow act">Mission profile <span class="sim">simulated</span></div>
+          <div class="seg" id="segProfiles"></div>
+        </div>
+        <div class="panel">
+          <div class="eyebrow act">Mission state <span class="sim">simulated</span></div>
+          <div class="seg states" id="segStates"></div>
+        </div>
+      </div>
+
+      <div class="panel" style="margin-top:16px">
+        <div class="eyebrow act">One-click mission scenarios <span class="sim">simulated</span></div>
+        <div class="scen">
+          <button onclick="mscen('routine-mobility')"><b>Routine Mobility</b><span>Healthy 5G, SATCOM in reserve. 5G is preferred.</span></button>
+          <button onclick="mscen('coverage-loss')"><b>Coverage Loss</b><span>5G coverage degrades; Continuity switches once the threshold is crossed.</span></button>
+          <button onclick="mscen('mission-priority-override')"><b>Mission Priority Override</b><span>Network unchanged, but the mission turns critical — the decision flips.</span></button>
+          <button onclick="mscen('critical-traffic-event')"><b>Critical Traffic Event</b><span>Command traffic prioritised; bulk and background deferred.</span></button>
+          <button onclick="mscen('contested')"><b>Contested Environment</b><span>Bearers degrade differently; policy re-weights preference.</span></button>
+        </div>
+      </div>
+
+      <div class="panel" style="margin-top:16px">
+        <div class="eyebrow">Adversarial scenarios <span class="sim">simulated</span></div>
+        <div class="btnrow" id="advRow">
+          <button class="btn bad" onclick="scen('dos')">Denial of Service</button>
+          <button class="btn bad" onclick="scen('asat')">SATCOM Unavailable</button>
+          <button class="btn bad" onclick="scen('jamming')">RF Jamming / Interference</button>
+          <span style="flex:1"></span>
+          <button class="btn" onclick="scen('restore')">Restore &amp; resume</button>
+        </div>
+      </div>
+
+      <div class="panel" style="margin-top:16px">
+        <div class="eyebrow act">Result of current selection</div>
+        <div class="verdict" style="margin:0">
+          <div class="vcard"><div class="vlab">Network-only</div><div class="vpick" id="selNet" style="font-size:30px">—</div></div>
+          <div class="vmid"><div class="vop" id="selOp" style="font-size:26px">=</div><div class="obadge no" id="selBadge">aligned</div></div>
+          <div class="vcard mission"><div class="vlab">Continuity selects</div><div class="vpick" id="selMis" style="font-size:30px;color:var(--accent)">—</div></div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ============ PERFORMANCE ============ -->
+    <section class="page" id="tab-performance">
+      <div class="grid2" style="align-items:start">
+        <div class="stack">
+          <div class="panel">
+            <div class="eyebrow">Available bearers · network × mission suitability = effective</div>
+            <div id="bearers"></div>
+          </div>
+        </div>
+        <div class="stack">
+          <div class="panel">
+            <div class="eyebrow">Traffic policy <span class="sim">simulated</span></div>
+            <div id="traffic"></div>
+          </div>
+          <div class="panel">
+            <div class="eyebrow">Decision engine · hysteresis</div>
+            <div id="hyst"></div>
+            <p class="muted" id="hnote" style="font-family:var(--mono);font-size:10.5px;margin-top:12px;line-height:1.5"></p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ============ LOGS ============ -->
+    <section class="page" id="tab-logs">
       <div class="panel">
-        <h3 class="sec">Traffic policy <span class="sim-tag">simulated</span></h3>
-        <div id="traffic"></div>
+        <div class="eyebrow act">Decision timeline<button class="btn" style="margin-left:auto;padding:7px 12px;font-size:11px" onclick="exportCSV()">Export CSV</button></div>
+        <div id="timeline"></div>
       </div>
+      <div class="panel" style="margin-top:16px">
+        <div class="eyebrow">Network event log</div>
+        <div id="events"></div>
+      </div>
+    </section>
+
+    <!-- ============ HELP ============ -->
+    <section class="page help" id="tab-help">
+      <div class="panel">
+        <div class="eyebrow act">Architecture — mission context is an input to the decision engine</div>
+        <div class="arch">
+          <div class="arow">
+            <div class="abox in">Mission Context<small>profile · state</small></div>
+            <div class="abox in">Application Priority<small>traffic class</small></div>
+            <div class="abox in">Bearer Telemetry<small>latency · loss · jitter</small></div>
+          </div>
+          <div class="aar">↓</div>
+          <div class="abox eng">Continuity Policy Engine</div>
+          <div class="aar">↓</div>
+          <div class="abox eng">Mission-Weighted Bearer Scoring<small>network quality × mission suitability</small></div>
+          <div class="aar">↓</div>
+          <div class="abox eng">Hysteresis / Decision Logic</div>
+          <div class="aar">↓</div>
+          <div class="abox out">Bearer Selection + Traffic Policy</div>
+          <div class="aar">↓</div>
+          <div class="arow"><div class="abox">5G</div><div class="abox">SATCOM</div><div class="abox">Radio</div><div class="abox">Wi-Fi</div><div class="abox">Wired</div></div>
+        </div>
+      </div>
+
+      <div class="panel" style="margin-top:16px">
+        <div class="eyebrow act">What you are looking at</div>
+        <h4>The idea</h4>
+        <p>Conventional network selection picks whichever link is fastest right now — lowest latency, highest bandwidth. Continuity adds a Mission Context Engine that also understands <em>why</em> communications matter at this moment, and re-weights the decision accordingly. The result: the same network conditions can produce a different, better decision as the mission changes.</p>
+        <h4>How a decision is made</h4>
+        <p>Every bearer gets a conventional <b>network score</b>, then a <b>mission score</b> (the same live metrics re-weighted by mission policy, plus a structural-resilience term), multiplied by a <b>mission suitability</b> factor for that bearer type. The highest <b>effective</b> score wins, subject to anti-flap hysteresis so the system never oscillates on noise.</p>
+        <h4>Glossary</h4>
+        <dl class="glo">
+          <dt>Mission profile</dt><dd>The standing objective (Routine, Mission Critical, Emergency, Contested) that sets how bearers are weighed.</dd>
+          <dt>Mission state</dt><dd>Operational pressure (Normal → Critical), which sharpens the weighting toward reliability and resilience.</dd>
+          <dt>Effective score</dt><dd>Network score × mission suitability — the value the selector actually ranks on.</dd>
+          <dt>Mission influence</dt><dd>How far mission policy moved the decision away from a purely network-based one.</dd>
+          <dt>Hysteresis</dt><dd>Anti-flap logic: a bearer must be clearly and persistently better before Continuity switches.</dd>
+        </dl>
+        <h4>Status of this demonstrator</h4>
+        <p>This console runs on simulated bearers, simulated mission profiles and representative scenarios. It is autonomous, policy-driven and explainable — it is not AI/ML. Nothing here is field-proven, certified, or accredited; real-hardware integration and operational validation are future work.</p>
+      </div>
+    </section>
+
+    <div class="foot">
+      <span>JEGASEC Continuity · mission-aware edge orchestration · software demonstrator</span>
+      <span id="footNode"></span>
     </div>
-
-    <div class="stack">
-      <div class="panel">
-        <h3 class="sec">Why Continuity chose this bearer</h3>
-        <div class="reasons" id="reasons"></div>
-      </div>
-      <div class="panel">
-        <h3 class="sec">Decision engine · hysteresis</h3>
-        <div class="hgrid" id="hyst"></div>
-        <div class="hnote" id="hnote"></div>
-      </div>
-      <div class="panel">
-        <h3 class="sec">Decision timeline</h3>
-        <div class="tl" id="timeline"></div>
-      </div>
-    </div>
-  </div>
-
-  <!-- Architecture -->
-  <div class="panel" style="margin-top:16px">
-    <h3 class="sec">Architecture — mission context is an input to the decision engine</h3>
-    <div class="arch">
-      <div class="arow">
-        <div class="abox in">Mission Context<small>profile · state</small></div>
-        <div class="abox in">Application Priority<small>traffic class</small></div>
-        <div class="abox in">Bearer Telemetry<small>latency · loss · jitter</small></div>
-      </div>
-      <div class="aarrow">↓</div>
-      <div class="abox eng">Continuity Policy Engine</div>
-      <div class="aarrow">↓</div>
-      <div class="abox eng">Mission-Weighted Bearer Scoring<small>network quality × mission suitability</small></div>
-      <div class="aarrow">↓</div>
-      <div class="abox eng">Hysteresis / Decision Logic</div>
-      <div class="aarrow">↓</div>
-      <div class="abox out">Bearer Selection + Traffic Policy</div>
-      <div class="aarrow">↓</div>
-      <div class="arow">
-        <div class="abox">5G</div><div class="abox">SATCOM</div><div class="abox">Radio</div><div class="abox">Wi-Fi</div><div class="abox">Wired</div>
-      </div>
-    </div>
-  </div>
-
-  <div class="about">
-    <p>Continuity combines real-time bearer telemetry with mission policy and application priority to determine which communications path best supports the current operational objective. The best network is not always the one with the highest bandwidth or lowest latency — Continuity evaluates which available bearer best supports the mission at that moment.</p>
-    <p>This console is a software demonstrator on simulated bearers, simulated mission profiles and representative scenarios. Mission profiles, states, bearer characteristics and adversarial scenarios are simulated policy, not classified threat modelling. The system is autonomous, policy-driven and explainable; it is not AI/ML. Real-hardware integration and operational validation remain future work — nothing here is field-proven, certified, or accredited.</p>
-  </div>
-
-  <div class="foot">
-    <span id="foot">JEGASEC Continuity · mission-aware edge orchestration · autonomous · policy-driven · explainable</span>
-    <a href="#" onclick="exportDecisions();return false">ↆ Export decision log (CSV)</a>
-  </div>
+  </div></main>
 
 <script>
-const C={green:'#00ff41',amber:'#ffb020',red:'#ff4d4d',muted:'#8a97ab',text:'#e6ebf3',bg:'#06080c',border:'#2a3648',blue:'#39a0ff'};
-const PROFILES=[['ROUTINE','Routine Ops'],['MISSION_CRITICAL','Mission Critical'],['EMERGENCY','Emergency'],['CONTESTED','Contested']];
-const STATES=['NORMAL','ELEVATED','DEGRADED','CRITICAL'];
-const OUTCOME_COLOR={PRIORITISE:C.green,NORMAL:C.muted,THROTTLE:C.amber,DEFER:C.amber,SUSPEND:C.red};
-const BAND_COLOR={LOW:C.muted,MODERATE:C.amber,HIGH:C.green,DOMINANT:C.green};
-const STATE_COLOR={NORMAL:C.green,ELEVATED:C.blue,DEGRADED:C.amber,CRITICAL:C.red};
+const C={green:'#00ff41',amber:'#ffb020',red:'#ff5964',muted:'#8593a6',faint:'#5b6779',text:'#e6ebf3',bg:'#06080c',blue:'#4aa8ff'};
+const PROFILES=[['ROUTINE','Routine Ops','throughput · economy'],['MISSION_CRITICAL','Mission Critical','reliability · resilience'],['EMERGENCY','Emergency','deliver critical traffic'],['CONTESTED','Contested','diversity · low-observable']];
+const STATES=[['NORMAL','performance-oriented'],['ELEVATED','reliability up'],['DEGRADED','resilience up'],['CRITICAL','preserve critical traffic']];
+const OC={PRIORITISE:C.green,NORMAL:C.muted,THROTTLE:C.amber,DEFER:C.amber,SUSPEND:C.red};
+const BAND={LOW:C.muted,MODERATE:C.amber,HIGH:C.green,DOMINANT:C.green};
+const SC={NORMAL:C.green,ELEVATED:C.blue,DEGRADED:C.amber,CRITICAL:C.red};
+let LAST=null, TAB='overview';
 
-function scoreColor(s){ if(s>=70) return C.green; if(s>=40) return C.amber; return C.red; }
-function statusColor(s){ return s==='RESILIENT'?C.green : s==='DEGRADED'?C.amber : C.red; }
-function evColor(t){ return {MIGRATE:C.green,REBIND:C.green,DEGRADED:C.amber,LINK_DOWN:C.red,HEALTHY:C.green}[t]||C.muted; }
-function hhmmss(iso){ try{return new Date(iso).toTimeString().slice(0,8);}catch(e){return '';} }
-function esc(x){ return (x==null?'':String(x)).replace(/[&<>]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;'}[c])); }
-function up(x){ return esc((x||'—')).toUpperCase(); }
+function esc(x){return (x==null?'':String(x)).replace(/[&<>]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;'}[c]));}
+function up(x){return esc(x||'—').toUpperCase();}
+function hhmmss(iso){try{return new Date(iso).toTimeString().slice(0,8);}catch(e){return '';}}
+function effOf(b){return b.effective_score!=null?b.effective_score:b.score;}
+function scoreColor(s){return s>=70?C.green:s>=40?C.amber:C.red;}
 
-async function post(url){ try{ await fetch(url,{method:'POST'}); }catch(e){} setTimeout(refresh,120); }
-function setProfile(p){ post('/api/v1/mission/profile/'+p); }
-function setMState(s){ post('/api/v1/mission/state/'+s); }
-function missionScenario(n){ post('/api/v1/mission/scenario/'+n); }
-function scenario(n){ post('/api/v1/scenario/'+n); }
-function exportDecisions(){ window.open('/api/v1/decisions?format=csv','_blank'); }
+async function post(u){try{await fetch(u,{method:'POST'});}catch(e){}setTimeout(refresh,120);}
+function setProfile(p){post('/api/v1/mission/profile/'+p);}
+function setMState(s){post('/api/v1/mission/state/'+s);}
+function mscen(n){post('/api/v1/mission/scenario/'+n);}
+function scen(n){post('/api/v1/scenario/'+n);}
+function exportCSV(){window.open('/api/v1/decisions?format=csv','_blank');}
 
-// Build the segmented controls once.
+// Tabs
+function showTab(id){
+  TAB=id;
+  document.querySelectorAll('.page').forEach(p=>p.classList.toggle('on',p.id==='tab-'+id));
+  document.querySelectorAll('#nav button').forEach(b=>b.classList.toggle('on',b.dataset.tab===id));
+  if(location.hash!=='#'+id) history.replaceState(null,'','#'+id);
+  if(LAST) paint();
+}
+document.querySelectorAll('#nav button').forEach(b=>b.onclick=()=>showTab(b.dataset.tab));
+window.addEventListener('hashchange',()=>{const h=location.hash.slice(1); if(h&&document.getElementById('tab-'+h)) showTab(h);});
+
+// Build segmented controls once
 (function(){
   const sp=document.getElementById('segProfiles');
-  PROFILES.forEach(([id,name])=>{ const b=document.createElement('button'); b.textContent=name; b.dataset.id=id; b.onclick=()=>setProfile(id); sp.appendChild(b); });
+  PROFILES.forEach(([id,name,sub])=>{const b=document.createElement('button');b.innerHTML=esc(name)+'<small>'+esc(sub)+'</small>';b.dataset.id=id;b.onclick=()=>setProfile(id);sp.appendChild(b);});
   const ss=document.getElementById('segStates');
-  STATES.forEach(id=>{ const b=document.createElement('button'); b.textContent=id; b.dataset.id=id; b.onclick=()=>setMState(id); ss.appendChild(b); });
+  STATES.forEach(([id,sub])=>{const b=document.createElement('button');b.innerHTML=esc(id)+'<small>'+esc(sub)+'</small>';b.dataset.id=id;b.onclick=()=>setMState(id);ss.appendChild(b);});
 })();
 
-function render(st){
+function paint(){
+  const st=LAST; if(!st) return;
   const m=st.mission;
-  document.getElementById('subline').textContent =
-    `node ${st.node} · ${m?('mission '+m.profile_name+' · state '+m.state):('profile '+st.profile)} · software demonstrator`;
+  document.getElementById('footNode').textContent='node '+esc(st.node);
+  document.getElementById('advRow').style.opacity = st.sim?1:.4;
 
-  // Segmented control active states.
-  if(m){
-    document.querySelectorAll('#segProfiles button').forEach(b=>b.classList.toggle('on',b.dataset.id===m.profile));
-    document.querySelectorAll('#segStates button').forEach(b=>b.classList.toggle('on',b.dataset.id===m.state));
-  }
+  // demo/manual banner
+  const dm=st.demo, db=document.getElementById('demobar');
+  if(dm&&dm.running&&!dm.paused){db.style.display='flex';db.style.borderLeftColor=C.green;const bd=document.getElementById('demoBadge');bd.textContent='DEMO';bd.style.background=C.green;bd.style.color=C.bg;document.getElementById('demoCap').textContent=dm.caption||'';}
+  else if(dm&&dm.paused){db.style.display='flex';db.style.borderLeftColor=C.amber;const bd=document.getElementById('demoBadge');bd.textContent='SCENARIO';bd.style.background=C.amber;bd.style.color=C.bg;document.getElementById('demoCap').textContent='Manual scenario active — the agent is autonomously selecting the best mission-weighted bearer.';}
+  else db.style.display='none';
 
-  // Scripted-demo / manual banner.
-  renderDemo(st);
-  document.getElementById('controls').style.display = st.sim ? 'flex' : 'none';
+  if(!m){document.getElementById('chip').style.display='none';return;}
 
-  if(!m){ return; } // legacy/network-only server
+  // header chip (always visible)
+  const chip=document.getElementById('chip');chip.style.display='flex';
+  const bandc=BAND[m.influence_band]||C.muted;
+  chip.innerHTML=`<b>${esc(m.profile)}</b><span class="sep">·</span>${esc(m.state)}<span class="sep">·</span>`+
+    `<b style="color:${C.green}">${up(st.active_interface)}</b>`+
+    `<span class="pill" style="${m.override?`background:${C.accent};color:${C.bg}`:`border:1px solid ${C.faint};color:${C.muted}`}">${m.override?'override':'aligned'}</span>`;
 
-  // Hero hierarchy tiles.
-  const active=(st.bearers||[]).find(b=>b.name===st.active_interface);
-  const sv=statusColor(st.status), stc=STATE_COLOR[m.state]||C.muted;
-  const decision = m.override
-    ? `Mission policy selects ${up(m.mission_pick)} over the network-fastest ${up(m.network_pick)} — reliability and resilience currently outweigh throughput.`
-    : `Mission-aware and network-only recommendations agree on ${up(m.mission_pick)} — conditions and mission are aligned.`;
-  document.getElementById('hero').innerHTML = `
-    <div class="htile accent"><div class="lab">Current mission</div><div class="val">${esc(m.profile_name)}</div><div class="meta">${esc(m.objective)}</div></div>
-    <div class="htile"><div class="lab">Mission state</div><div class="val" style="color:${stc}"><span class="dot" style="background:${stc};box-shadow:0 0 10px ${stc}"></span>${esc(m.state)}</div><div class="meta">${esc((m.hysteresis&&m.hysteresis.note)||'')}</div></div>
-    <div class="htile"><div class="lab">Active traffic</div><div class="val">${esc(m.active_class.name)}</div><div class="meta">${esc(m.active_class.priority)} priority</div></div>
-    <div class="htile accent"><div class="lab">Selected bearer</div><div class="val" style="color:${C.green}">${up(st.active_interface)}</div><div class="meta">${active?Math.round(active.metrics.latency_ms)+' ms · '+active.metrics.loss_pct.toFixed(1)+'% loss · eff '+Math.round(active.effective_score||active.score):''}</div></div>
-    <div class="htile"><div class="lab">System status</div><div class="val" style="color:${sv}">${esc(st.status)}</div><div class="meta">${st.continuity&&st.continuity.enabled?('overlay '+esc(st.continuity.overlay)+' · '+st.continuity.rebinds+' rebind'+(st.continuity.rebinds===1?'':'s')):'session continuity active'}</div></div>
-    <div class="htile" style="grid-column:1/-1;border-left:2px solid ${m.override?C.accent:C.border}"><div class="lab">Mission-aware decision</div><div class="meta" style="font-size:12.5px;color:${C.text};margin-top:7px">${esc(decision)}</div></div>`;
+  // per-tab
+  if(TAB==='overview') paintOverview(st,m,bandc);
+  else if(TAB==='selections') paintSelections(st,m);
+  else if(TAB==='performance') paintPerformance(st,m);
+  else if(TAB==='logs') paintLogs(st,m);
+}
 
-  // Comparison.
-  document.getElementById('netPick').textContent = up(m.network_pick);
-  document.getElementById('misPick').textContent = up(m.mission_pick);
-  const op=document.getElementById('cmpOp'), badge=document.getElementById('ovrBadge');
-  op.textContent = m.override ? '≠' : '=';
-  op.style.color = m.override ? C.accent : C.muted;
-  badge.textContent = m.override ? 'mission override' : 'aligned';
-  badge.className = 'ovr-badge '+(m.override?'ovr-yes':'ovr-no');
-  document.getElementById('cmpNet').style.borderColor = m.override ? C.border : C.border;
-  const bandC=BAND_COLOR[m.influence_band]||C.muted;
-  document.getElementById('inflVal').textContent = `${m.influence_band} · ${m.influence_pct}%`;
-  document.getElementById('inflVal').style.color = bandC;
-  const ib=document.getElementById('inflBar');
-  ib.style.width = Math.max(3,Math.min(100,m.influence_pct))+'%';
-  ib.style.background = bandC;
-  ib.style.boxShadow = '0 0 10px '+bandC+'88';
+function paintOverview(st,m,bandc){
+  document.getElementById('ovNet').textContent=up(m.network_pick);
+  document.getElementById('ovMis').textContent=up(m.mission_pick);
+  const op=document.getElementById('ovOp'),bd=document.getElementById('ovBadge');
+  op.textContent=m.override?'≠':'=';op.style.color=m.override?C.green:C.faint;
+  bd.textContent=m.override?'mission override':'aligned';bd.className='obadge '+(m.override?'yes':'no');
+  document.getElementById('ovReason').innerHTML = m.override
+    ? `With the network unchanged, <b>${up(m.mission_pick)}</b> is chosen over the faster <b>${up(m.network_pick)}</b> because the current mission weights reliability and resilience above raw throughput.`
+    : `Continuity and a network-only selector agree on <b>${up(m.mission_pick)}</b> — the mission and the fastest path are currently aligned.`;
+  document.getElementById('ovInflVal').textContent=`${m.influence_band} · ${m.influence_pct}%`;
+  document.getElementById('ovInflVal').style.color=bandc;
+  const ib=document.getElementById('ovInflBar');ib.style.width=Math.max(3,Math.min(100,m.influence_pct))+'%';ib.style.background=bandc;ib.style.boxShadow='0 0 10px '+bandc+'80';
+  const act=(st.bearers||[]).find(b=>b.name===st.active_interface);
+  const stc=SC[m.state]||C.muted;
+  document.getElementById('ovTiles').innerHTML=`
+    <div class="tile"><div class="k">Current mission</div><div class="v">${esc(m.profile_name)}</div><div class="s"><span class="dot" style="background:${stc}"></span> state ${esc(m.state)}</div></div>
+    <div class="tile"><div class="k">Active traffic</div><div class="v">${esc(m.active_class.name)}</div><div class="s">${esc(m.active_class.priority)} priority</div></div>
+    <div class="tile"><div class="k">Selected bearer</div><div class="v" style="color:${C.green}">${up(st.active_interface)}</div><div class="s">${act?Math.round(act.metrics.latency_ms)+' ms · '+act.metrics.loss_pct.toFixed(0)+'% loss':''}</div></div>
+    <div class="tile"><div class="k">System status</div><div class="v" style="color:${st.status==='RESILIENT'?C.green:st.status==='DEGRADED'?C.amber:C.red}">${esc(st.status)}</div><div class="s">${(st.bearers||[]).filter(b=>b.metrics.ok).length} of ${(st.bearers||[]).length} bearers up</div></div>`;
+}
 
-  // Bearer cards.
-  renderCards(st);
+function paintSelections(st,m){
+  document.querySelectorAll('#segProfiles button').forEach(b=>b.classList.toggle('on',b.dataset.id===m.profile));
+  document.querySelectorAll('#segStates button').forEach(b=>b.classList.toggle('on',b.dataset.id===m.state));
+  document.getElementById('selNet').textContent=up(m.network_pick);
+  document.getElementById('selMis').textContent=up(m.mission_pick);
+  const op=document.getElementById('selOp'),bd=document.getElementById('selBadge');
+  op.textContent=m.override?'≠':'=';op.style.color=m.override?C.green:C.faint;
+  bd.textContent=m.override?'mission override':'aligned';bd.className='obadge '+(m.override?'yes':'no');
+}
 
-  // Reasons.
-  document.getElementById('reasons').innerHTML =
-    (m.reasons||[]).map(r=>`<div class="reason">${esc(r)}</div>`).join('') || '<div class="reason">no decision yet</div>';
-
-  // Traffic policy.
-  document.getElementById('traffic').innerHTML = (m.traffic||[]).map(t=>{
-    const col=OUTCOME_COLOR[t.outcome]||C.muted;
-    const style = t.outcome==='PRIORITISE' ? `background:${col};color:${C.bg}` : `border:1px solid ${col};color:${col}`;
-    return `<div class="trow"><span class="tname">${esc(t.name)}</span><span class="tpri">${esc(t.priority)}</span><span class="toc" style="${style}">${esc(t.outcome)}</span></div>`;
+function paintPerformance(st,m){
+  // bearers
+  const wrap=document.getElementById('bearers');wrap.innerHTML='';
+  (st.bearers||[]).forEach(b=>{
+    const eff=effOf(b),sc=scoreColor(eff),ok=b.metrics.ok,suit=b.suitability!=null?b.suitability:1;
+    const suitc=suit>1.001?C.green:suit<0.999?C.red:C.muted;
+    let rs;if(b.role==='ACTIVE')rs=`background:${C.green};color:${C.bg};border-color:${C.green}`;else if(b.role==='DOWN')rs=`color:${C.red};border-color:${C.red}`;else rs=`color:${C.muted};border-color:${C.border}`;
+    const el=document.createElement('div');el.className='bearer'+(b.role==='ACTIVE'?' act':'');
+    el.innerHTML=`<div class="btop"><div><div class="bname">${up(b.name)}</div><div class="bkind">${esc(b.bearer_type||b.kind)}</div></div>`+
+      `<div class="beff" style="color:${sc}">${Math.round(eff)}<small>EFFECTIVE</small></div>`+
+      `<div class="role" style="${rs}">${esc(b.role)}</div></div>`+
+      `<div class="bcalc"><span class="c">net <b>${ok?Math.round(b.network_score||0):'—'}</b></span><span>×</span><span class="c">suit <b style="color:${suitc}">${suit.toFixed(2)}</b></span><span>=</span><span class="c eq">eff <b>${Math.round(eff)}</b></span></div>`+
+      `<div class="bmet"><span>LAT <b>${ok?Math.round(b.metrics.latency_ms):'—'}</b> ms</span><span>LOSS <b>${ok?b.metrics.loss_pct.toFixed(0):'—'}</b>%</span><span>BW <b>${ok?Math.round(b.metrics.throughput_mbps):'—'}</b> Mbps</span></div>`+
+      `<div class="bbar"><i style="width:${Math.max(3,Math.min(100,eff))}%;background:${sc}"></i></div>`;
+    wrap.appendChild(el);
+  });
+  // traffic
+  document.getElementById('traffic').innerHTML=(m.traffic||[]).map(t=>{
+    const col=OC[t.outcome]||C.muted,sty=t.outcome==='PRIORITISE'?`background:${col};color:${C.bg}`:`border:1px solid ${col};color:${col}`;
+    return `<div class="trow"><span class="tn">${esc(t.name)}</span><span class="tp">${esc(t.priority)}</span><span class="toc" style="${sty}">${esc(t.outcome)}</span></div>`;
   }).join('');
-
-  // Hysteresis.
+  // hysteresis
   const h=m.hysteresis_state||{};
-  document.getElementById('hyst').innerHTML = `
+  document.getElementById('hyst').innerHTML=`
     <div class="hg"><span>Current path</span><b>${up(h.current)}</b></div>
     <div class="hg"><span>Best candidate</span><b>${up(h.candidate)}</b></div>
     <div class="hg"><span>Score advantage</span><b>${(h.score_diff>=0?'+':'')}${(h.score_diff||0).toFixed(1)}</b></div>
     <div class="hg"><span>Switch threshold</span><b>${(h.threshold||0).toFixed(1)}</b></div>
-    <div class="hg"><span>Dwell floor</span><b>${(h.dwell_s||0).toFixed(1)}s</b></div>
-    <div class="hg"><span>Degraded streak</span><b>${h.degraded_streak||0}</b></div>
-    <div class="hg"><span>Recovery streak</span><b>${h.recovered_streak||0}</b></div>
+    <div class="hg"><span>Dwell floor</span><b>${(h.dwell_s||0).toFixed(1)} s</b></div>
     <div class="hg"><span>Decision</span><b style="color:${h.decision==='MIGRATE'?C.green:C.text}">${esc(h.decision||'—')}</b></div>`;
-  document.getElementById('hnote').textContent = (m.hysteresis&&m.hysteresis.note)||'';
+  document.getElementById('hnote').textContent=(m.hysteresis&&m.hysteresis.note)||'';
+}
 
-  // Timeline (mission-aware decision records, newest first).
-  const tl=document.getElementById('timeline');
+function paintLogs(st,m){
   const recs=(st.decisions||[]).slice().reverse();
-  tl.innerHTML = recs.map(d=>{
-    const sc=STATE_COLOR[d.mission_state]||C.muted;
-    const flow = d.action==='MIGRATE' && d.to ? `<span class="act" style="color:${C.green}">${up(d.from)||'∅'} → ${up(d.to)}</span>` : `<span class="act">HOLD ${up(d.active)}</span>`;
-    const ov = d.override ? ` <span style="color:${C.accent}">· mission override</span>` : '';
-    return `<div class="tlr"><div class="tlt">${hhmmss(d.at)}</div>`+
-      `<div class="tlstate" style="border:1px solid ${sc};color:${sc}">${esc(d.mission_state)}</div>`+
-      `<div class="tld">${flow}${ov}<div class="rsn">${esc(d.network_event)} · ${esc(d.reason)}</div></div></div>`;
-  }).join('') || `<div style="color:${C.muted};font-family:var(--mono);font-size:12px">// no decisions yet</div>`;
+  document.getElementById('timeline').innerHTML=recs.map(d=>{
+    const sc=SC[d.mission_state]||C.muted;
+    const flow=d.action==='MIGRATE'&&d.to?`<b style="color:${C.green}">${up(d.from)||'∅'} → ${up(d.to)}</b>`:`<b>HOLD ${up(d.active)}</b>`;
+    const ov=d.override?` <span style="color:${C.green}">· override</span>`:'';
+    return `<div class="tl-row"><div class="tl-t">${hhmmss(d.at)}</div><div class="tl-s" style="border:1px solid ${sc};color:${sc}">${esc(d.mission_state)}</div><div class="tl-d">${flow}${ov}<div class="rsn">${esc(d.network_event)} · ${esc(d.reason)}</div></div></div>`;
+  }).join('')||`<div class="muted" style="font-family:var(--mono);font-size:12px">No decisions yet.</div>`;
+  const evc={MIGRATE:C.green,REBIND:C.green,DEGRADED:C.amber,LINK_DOWN:C.red,HEALTHY:C.green};
+  document.getElementById('events').innerHTML=(st.events||[]).map(e=>{
+    const col=evc[e.type]||C.muted;const flow=(e.type==='MIGRATE'||e.type==='REBIND');
+    const txt=flow?`<b style="color:${col}">${up(e.from)} → ${up(e.to)}</b> · ${esc(e.reason)}`:`<b>${up(e.interface)}</b> ${esc(e.type.replace('_',' ').toLowerCase())} · ${esc(e.reason)}`;
+    return `<div class="ev"><span class="et">${hhmmss(e.at)}</span><span>${txt}</span></div>`;
+  }).join('')||`<div class="muted" style="font-family:var(--mono);font-size:12px">No events yet.</div>`;
 }
 
-function renderCards(st){
-  const cards=document.getElementById('cards'); cards.innerHTML='';
-  (st.bearers||[]).forEach(b=>{
-    const eff=b.effective_score!=null?b.effective_score:b.score;
-    const sc=scoreColor(eff), ok=b.metrics.ok;
-    let roleStyle;
-    if(b.role==='ACTIVE') roleStyle=`background:${C.green};color:${C.bg};border-color:${C.green}`;
-    else if(b.role==='DOWN') roleStyle=`background:transparent;color:${C.red};border-color:${C.red}`;
-    else roleStyle=`background:transparent;color:${C.muted};border-color:${C.border}`;
-    const suit=b.suitability!=null?b.suitability:1;
-    const suitCol = suit>1.001?C.green : suit<0.999?C.red : C.muted;
-    const el=document.createElement('div');
-    el.className='card'+(b.role==='ACTIVE'?' act':'');
-    el.innerHTML=`
-      <div class="card-top">
-        <div><div class="b-name">${up(b.name)}</div><div class="b-kind">${esc(b.bearer_type||b.kind)}</div></div>
-        <div class="b-eff" style="color:${sc}">${Math.round(eff)}<small>EFFECTIVE</small></div>
-        <div class="role" style="${roleStyle}">${esc(b.role)}</div>
-      </div>
-      <div class="b-break">
-        <span class="chip">net <b>${ok?Math.round(b.network_score||0):'—'}</b></span>
-        <span class="op">×</span>
-        <span class="chip">mission suit <b style="color:${suitCol}">${suit.toFixed(2)}</b></span>
-        <span class="op">=</span>
-        <span class="chip eff">effective <b>${Math.round(eff)}</b></span>
-      </div>
-      <div class="b-metrics">
-        <span>LAT <b>${ok?Math.round(b.metrics.latency_ms):'—'}</b>ms</span>
-        <span>LOSS <b>${ok?b.metrics.loss_pct.toFixed(0):'—'}</b>%</span>
-        <span>BW <b>${ok?Math.round(b.metrics.throughput_mbps):'—'}</b>Mbps</span>
-      </div>
-      <div class="bar"><i style="width:${Math.max(3,Math.min(100,eff))}%;background:${sc};box-shadow:0 0 8px ${sc}66"></i></div>`;
-    cards.appendChild(el);
-  });
-}
-
-function renderDemo(st){
-  const dm=st.demo, db=document.getElementById('demobar');
-  const badge=db.querySelector('.demo-badge'), prog=document.getElementById('demoProg').parentElement;
-  const manual = !!(dm && dm.paused);
-  if(dm && dm.running && !manual){
-    db.style.display='block'; db.style.borderLeftColor=C.green;
-    badge.textContent='DEMO'; badge.style.background=C.green; badge.style.color=C.bg; prog.style.display='block';
-    document.getElementById('demoCap').textContent = dm.caption||'';
-    const pct = dm.total_s ? Math.max(0,Math.min(100, dm.elapsed_s/dm.total_s*100)) : 0;
-    document.getElementById('demoProg').style.width = pct+'%';
-    document.getElementById('demoMeta').textContent = `beat ${dm.step}/${dm.steps} · ${Math.round(dm.elapsed_s)}s / ${Math.round(dm.total_s)}s · cycle ${(dm.loops||0)+1}`;
-  } else if(manual){
-    db.style.display='block'; db.style.borderLeftColor=C.amber;
-    badge.textContent='MANUAL'; badge.style.background=C.amber; badge.style.color=C.bg; prog.style.display='none';
-    document.getElementById('demoCap').textContent = 'Scenario active. The agent is autonomously selecting the best mission-weighted bearer. Ambient demonstration resumes shortly, or hit Restore & resume.';
-    document.getElementById('demoMeta').textContent='';
-  } else { db.style.display='none'; }
-}
-
-async function refresh(){
-  try{ const r=await fetch('/api/v1/state',{cache:'no-store'}); render(await r.json()); }catch(e){}
-}
-refresh();
-setInterval(refresh,1000);
+async function refresh(){try{const r=await fetch('/api/v1/state',{cache:'no-store'});LAST=await r.json();paint();}catch(e){}}
+const h0=location.hash.slice(1); if(h0&&document.getElementById('tab-'+h0)) showTab(h0);
+refresh();setInterval(refresh,1000);
 </script>
 </body>
 </html>
