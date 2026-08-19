@@ -137,6 +137,20 @@
   .bbar{height:4px;background:var(--bg-alt);border-radius:999px;overflow:hidden;margin-top:11px}
   .bbar>i{display:block;height:100%}
 
+  /* ---------- Telemetry graphs ---------- */
+  .tchips{display:flex;gap:7px;flex-wrap:wrap;margin-bottom:16px}
+  .tchip{background:transparent;border:1px solid var(--border-bright);border-radius:999px;color:var(--muted);
+    font-family:var(--mono);font-size:10px;letter-spacing:.05em;padding:5px 12px;cursor:pointer;transition:.15s}
+  .tchip:hover{color:var(--text)}
+  .tchip.on{border-color:var(--accent);color:var(--accent)}
+  .tgrid{display:grid;grid-template-columns:repeat(auto-fit,minmax(215px,1fr));gap:12px}
+  .tcard{border:1px solid var(--border);border-radius:var(--radius);padding:13px 15px;background:var(--bg-alt)}
+  .tk{font-family:var(--mono);font-size:9.5px;letter-spacing:.1em;text-transform:uppercase;color:var(--muted);display:flex;justify-content:space-between;align-items:baseline;gap:8px}
+  .tk span{color:var(--faint);font-size:9px}
+  .tv{font-family:var(--display);font-size:25px;font-weight:700;line-height:1;margin:7px 0 9px;font-variant-numeric:tabular-nums}
+  .tsvg{width:100%;height:48px;display:block;overflow:visible}
+  .tbase{stroke:var(--border);stroke-width:1;vector-effect:non-scaling-stroke}
+
   /* ---------- Traffic ---------- */
   .trow{display:grid;grid-template-columns:1fr auto auto;gap:12px;align-items:center;padding:9px 0;border-bottom:1px solid var(--border)}
   .trow:last-child{border-bottom:none}
@@ -286,6 +300,11 @@
 
     <!-- ============ PERFORMANCE ============ -->
     <section class="page" id="tab-performance">
+      <div class="panel" style="margin-bottom:16px">
+        <div class="eyebrow act">Bearer telemetry · last 60 s<span class="muted" id="telName" style="margin-left:auto;letter-spacing:0;text-transform:none;font-size:11px"></span></div>
+        <div class="tchips" id="telChips"></div>
+        <div class="tgrid" id="telGrid"></div>
+      </div>
       <div class="grid2" style="align-items:start">
         <div class="stack">
           <div class="panel">
@@ -375,6 +394,16 @@ const OC={PRIORITISE:C.green,NORMAL:C.muted,THROTTLE:C.amber,DEFER:C.amber,SUSPE
 const BAND={LOW:C.muted,MODERATE:C.amber,HIGH:C.green,DOMINANT:C.green};
 const SC={NORMAL:C.green,ELEVATED:C.blue,DEGRADED:C.amber,CRITICAL:C.red};
 let LAST=null, TAB='overview';
+// Client-side rolling telemetry history, built from the 1 Hz state poll.
+let HIST={}, chartBearer=null; const HMAX=60;
+function pushHistory(st){
+  (st.bearers||[]).forEach(b=>{
+    const H=HIST[b.name]||(HIST[b.name]={lat:[],tput:[],loss:[],jit:[]});
+    const m=b.metrics||{};
+    H.lat.push(+m.latency_ms||0); H.tput.push(+m.throughput_mbps||0); H.loss.push(+m.loss_pct||0); H.jit.push(+m.jitter_ms||0);
+    ['lat','tput','loss','jit'].forEach(k=>{ if(H[k].length>HMAX) H[k].splice(0,H[k].length-HMAX); });
+  });
+}
 
 function esc(x){return (x==null?'':String(x)).replace(/[&<>]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;'}[c]));}
 function up(x){return esc(x||'—').toUpperCase();}
@@ -467,7 +496,38 @@ function paintSelections(st,m){
   bd.textContent=m.override?'mission override':'aligned';bd.className='obadge '+(m.override?'yes':'no');
 }
 
+// Minimal zero-dependency sparkline: returns SVG path + area for a 100×30 box,
+// zero-baselined so magnitudes read honestly.
+function spark(vals){
+  const w=100,h=30;
+  if(!vals||vals.length<2) return {line:'',area:''};
+  let hi=Math.max(...vals,0); if(hi<=0) hi=1; hi+=hi*0.15;
+  const n=vals.length, X=i=>(i/(n-1))*w, Y=v=>h-(v/hi)*h;
+  let line='',area='M0 '+h;
+  for(let i=0;i<n;i++){const px=X(i).toFixed(1),py=Y(vals[i]).toFixed(1);line+=(i?'L':'M')+px+' '+py+' ';area+=' L'+px+' '+py;}
+  area+=' L'+w+' '+h+' Z';
+  return {line,area};
+}
+function paintTelemetry(st){
+  const bearers=st.bearers||[];
+  const name=(chartBearer && HIST[chartBearer])?chartBearer:st.active_interface;
+  document.getElementById('telName').textContent = name?('showing '+name.toUpperCase()+(name===st.active_interface?' · selected bearer':'')):'';
+  document.getElementById('telChips').innerHTML = bearers.map(b=>`<button class="tchip${b.name===name?' on':''}" onclick="chartBearer='${esc(b.name)}';paint()">${up(b.name)}</button>`).join('');
+  const H=HIST[name]||{lat:[],tput:[],loss:[],jit:[]};
+  const defs=[['Latency','ms',H.lat,C.blue,0],['Throughput / bandwidth','Mbps',H.tput,C.green,0],['Packet loss','%',H.loss,C.red,1],['Jitter','ms',H.jit,C.amber,1]];
+  document.getElementById('telGrid').innerHTML = defs.map(([t,u,vals,col,dec])=>{
+    const cur=vals.length?vals[vals.length-1]:null, sp=spark(vals);
+    return `<div class="tcard"><div class="tk"><span style="color:var(--muted)">${t}</span><span>${u}</span></div>`+
+      `<div class="tv" style="color:${col}">${cur==null?'—':cur.toFixed(dec)}</div>`+
+      `<svg class="tsvg" viewBox="0 0 100 30" preserveAspectRatio="none">`+
+        `<line class="tbase" x1="0" y1="30" x2="100" y2="30"/>`+
+        (sp.area?`<path d="${sp.area}" fill="${col}" opacity="0.12"/>`:'')+
+        `<path d="${sp.line}" fill="none" stroke="${col}" stroke-width="1.6" vector-effect="non-scaling-stroke" stroke-linejoin="round" stroke-linecap="round"/>`+
+      `</svg></div>`;
+  }).join('');
+}
 function paintPerformance(st,m){
+  paintTelemetry(st);
   // bearers
   const wrap=document.getElementById('bearers');wrap.innerHTML='';
   (st.bearers||[]).forEach(b=>{
@@ -516,7 +576,7 @@ function paintLogs(st,m){
   }).join('')||`<div class="muted" style="font-family:var(--mono);font-size:12px">No events yet.</div>`;
 }
 
-async function refresh(){try{const r=await fetch('/api/v1/state',{cache:'no-store'});LAST=await r.json();paint();}catch(e){}}
+async function refresh(){try{const r=await fetch('/api/v1/state',{cache:'no-store'});LAST=await r.json();pushHistory(LAST);paint();}catch(e){}}
 const h0=location.hash.slice(1); if(h0&&document.getElementById('tab-'+h0)) showTab(h0);
 refresh();setInterval(refresh,1000);
 </script>
