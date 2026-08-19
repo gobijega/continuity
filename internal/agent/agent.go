@@ -13,6 +13,7 @@ import (
 	"time"
 
 	"github.com/gobijega/continuity/internal/events"
+	"github.com/gobijega/continuity/internal/mission"
 	"github.com/gobijega/continuity/internal/policy"
 	"github.com/gobijega/continuity/internal/routing"
 	"github.com/gobijega/continuity/internal/scoring"
@@ -33,7 +34,9 @@ type Source interface {
 	Read(now time.Time) []Reading
 }
 
-// BearerView is the per-bearer snapshot published to the API.
+// BearerView is the per-bearer snapshot published to the API. The mission-aware
+// fields are populated only when the agent runs with a mission engine; they are
+// omitted otherwise so the legacy (network-only) shape is unchanged.
 type BearerView struct {
 	Name       string             `json:"name"`
 	Kind       string             `json:"kind"`
@@ -42,18 +45,26 @@ type BearerView struct {
 	Components map[string]float64 `json:"components,omitempty"`
 	Role       string             `json:"role"`
 	Preferred  bool               `json:"preferred"`
+
+	BearerType     string  `json:"bearer_type,omitempty"`     // mission bearer classification
+	NetworkScore   float64 `json:"network_score,omitempty"`   // conventional network-only score
+	MissionScore   float64 `json:"mission_score,omitempty"`   // mission-weighted network score (pre-suitability)
+	Suitability    float64 `json:"suitability,omitempty"`     // mission suitability multiplier
+	EffectiveScore float64 `json:"effective_score,omitempty"` // mission score × suitability (the decision score)
 }
 
 // Snapshot is an immutable view of the agent's state for the API/dashboard.
 type Snapshot struct {
-	Node       string         `json:"node"`
-	Profile    string         `json:"profile"`
-	Status     string         `json:"status"` // RESILIENT | DEGRADED | CRITICAL
-	Active     string         `json:"active_interface"`
-	At         time.Time      `json:"at"`
-	Bearers    []BearerView   `json:"bearers"`
-	Events     []events.Event `json:"events"`
-	Continuity *tunnel.State  `json:"continuity,omitempty"` // session-continuity overlay (Sprint 9)
+	Node       string           `json:"node"`
+	Profile    string           `json:"profile"`
+	Status     string           `json:"status"` // RESILIENT | DEGRADED | CRITICAL
+	Active     string           `json:"active_interface"`
+	At         time.Time        `json:"at"`
+	Bearers    []BearerView     `json:"bearers"`
+	Events     []events.Event   `json:"events"`
+	Continuity *tunnel.State    `json:"continuity,omitempty"` // session-continuity overlay (Sprint 9)
+	Mission    *MissionView     `json:"mission,omitempty"`    // mission layer (nil in legacy/network-only mode)
+	Decisions  []DecisionRecord `json:"decisions,omitempty"`  // recent mission-aware decision records (spec §11, §17)
 }
 
 // Agent runs the control loop and holds the latest snapshot.
@@ -70,9 +81,15 @@ type Agent struct {
 	tunnel tunnel.Manager
 	log    *events.Log
 
-	prevState map[string]string
-	mu        sync.RWMutex
-	snap      Snapshot
+	mission   *mission.Engine // nil => legacy network-only scoring
+	baseHyst  policy.Hysteresis
+	decisions *decisionLog
+
+	prevState  map[string]string
+	prevActive string
+	lastSig    string // signature of the last recorded decision (dedupes the timeline)
+	mu         sync.RWMutex
+	snap       Snapshot
 }
 
 // Options configures a new Agent.
@@ -85,6 +102,7 @@ type Options struct {
 	Hyst    policy.Hysteresis
 	Thresh  scoring.Thresholds
 	Log     *events.Log
+	Mission *mission.Engine // when set, the agent scores bearers mission-aware
 }
 
 // New builds an Agent from Options, filling in sensible defaults.
@@ -121,31 +139,58 @@ func New(o Options) *Agent {
 		router:     o.Router,
 		tunnel:     o.Tunnel,
 		log:        o.Log,
+		mission:    o.Mission,
+		baseHyst:   o.Hyst,
+		decisions:  newDecisionLog(300),
 		prevState:  map[string]string{},
 	}
 }
 
-// Tick runs one control cycle at time now and returns the fresh snapshot.
+// Tick runs one control cycle at time now and returns the fresh snapshot. With
+// no mission engine it scores bearers network-only (legacy behaviour); with a
+// mission engine it scores them mission-aware and publishes the mission layer.
 func (a *Agent) Tick(now time.Time) Snapshot {
 	readings := a.source.Read(now)
 
-	views := make([]BearerView, 0, len(readings))
-	scored := make([]policy.Scored, 0, len(readings))
-	for _, r := range readings {
-		in := scoring.Input{
-			Available:      r.Metrics.OK,
-			LatencyMs:      r.Metrics.LatencyMs,
-			JitterMs:       r.Metrics.JitterMs,
-			LossPct:        r.Metrics.LossPct,
-			ThroughputMbps: r.Metrics.ThroughputMbps,
-			ReliabilityPct: 100,
-			CostScore:      costScore(r.Kind),
+	var views []BearerView
+	var scored []policy.Scored
+	var ms missionScored
+	var mctx mission.Context
+	missionOn := a.mission != nil
+
+	if missionOn {
+		mctx = a.mission.Context()
+		ms = computeMission(readings, mctx)
+		views, scored = ms.views, ms.scored
+		// Mission-modulated hysteresis (spec §12): scale the base thresholds by
+		// the state's modifiers. Anti-oscillation logic still runs; only the
+		// switch-readiness moves.
+		h := a.baseHyst
+		h.MinImprovement = a.baseHyst.MinImprovement * mctx.Hysteresis.MinImprovementScale
+		h.MinDwell = time.Duration(float64(a.baseHyst.MinDwell) * mctx.Hysteresis.MinDwellScale)
+		a.ctrl.H = h
+		for i := range views {
+			a.emitTransition(now, views[i])
 		}
-		sc := scoring.Compute(in, a.weights, a.thresh)
-		v := BearerView{Name: r.Name, Kind: r.Kind, Metrics: r.Metrics, Score: sc.Total, Components: sc.Components, Preferred: r.Preferred}
-		a.emitTransition(now, v)
-		views = append(views, v)
-		scored = append(scored, policy.Scored{Name: r.Name, Score: sc.Total, Available: r.Metrics.OK, Preferred: r.Preferred})
+	} else {
+		views = make([]BearerView, 0, len(readings))
+		scored = make([]policy.Scored, 0, len(readings))
+		for _, r := range readings {
+			in := scoring.Input{
+				Available:      r.Metrics.OK,
+				LatencyMs:      r.Metrics.LatencyMs,
+				JitterMs:       r.Metrics.JitterMs,
+				LossPct:        r.Metrics.LossPct,
+				ThroughputMbps: r.Metrics.ThroughputMbps,
+				ReliabilityPct: 100,
+				CostScore:      costScore(r.Kind),
+			}
+			sc := scoring.Compute(in, a.weights, a.thresh)
+			v := BearerView{Name: r.Name, Kind: r.Kind, Metrics: r.Metrics, Score: sc.Total, Components: sc.Components, Preferred: r.Preferred}
+			a.emitTransition(now, v)
+			views = append(views, v)
+			scored = append(scored, policy.Scored{Name: r.Name, Score: sc.Total, Available: r.Metrics.OK, Preferred: r.Preferred})
+		}
 	}
 
 	d := a.ctrl.Decide(now, scored)
@@ -180,20 +225,104 @@ func (a *Agent) Tick(now time.Time) Snapshot {
 		}
 	}
 
+	var mv *MissionView
+	var decisions []DecisionRecord
+	if missionOn {
+		override := ms.netPick != "" && ms.missPick != "" && ms.netPick != ms.missPick
+		infl, band := mission.Influence(mctx.Weights, mctx.NetworkWeights, ms.suit, override)
+		hv := buildHyst(active, ms, a.ctrl.H, a.ctrl.DegradedStreak(), a.ctrl.RecoveredStreak(), a.ctrl.Suppressed(), d, mctx.Hysteresis.Note)
+		mv = &MissionView{
+			Context:       mctx,
+			NetworkPick:   ms.netPick,
+			MissionPick:   ms.missPick,
+			Override:      override,
+			InfluencePct:  infl,
+			InfluenceBand: band,
+			Reasons:       buildReasons(mctx, active, ms, override, d),
+			HystState:     hv,
+		}
+		rec := DecisionRecord{
+			At: now, MissionProfile: string(mctx.Profile), MissionState: string(mctx.State),
+			ActiveClass: mctx.ActiveClass.Name, Active: active, Candidate: hv.Candidate,
+			NetworkPick: ms.netPick, MissionPick: ms.missPick, Override: override,
+			Action: string(d.Action), From: d.From, To: d.To, Reason: d.Reason,
+			InfluencePct: infl, InfluenceBand: band, NetworkEvent: networkEventFor(d, override), Scores: ms.scores,
+		}
+		a.maybeRecord(rec, d)
+		decisions = a.decisions.recent(14)
+	}
+	a.prevActive = active
+
+	prof := a.profile
+	if missionOn {
+		prof = string(mctx.Profile)
+	}
 	snap := Snapshot{
 		Node:       a.node,
-		Profile:    a.profile,
+		Profile:    prof,
 		Status:     status(active, availCount),
 		Active:     active,
 		At:         now,
 		Bearers:    views,
 		Events:     a.log.Recent(12),
 		Continuity: continuityView(a.tunnel),
+		Mission:    mv,
+		Decisions:  decisions,
 	}
 	a.mu.Lock()
 	a.snap = snap
 	a.mu.Unlock()
 	return snap
+}
+
+// maybeRecord appends a decision record only when the decision picture changed
+// (a migration, or a shift in mission state/profile/pick/override), so the
+// timeline reads as meaningful events rather than one row per second.
+func (a *Agent) maybeRecord(rec DecisionRecord, d policy.Decision) {
+	sig := rec.MissionProfile + "|" + rec.MissionState + "|" + rec.MissionPick + "|" +
+		rec.NetworkPick + "|" + rec.Active + "|" + boolStr(rec.Override)
+	if d.Action == policy.Migrate || sig != a.lastSig {
+		a.decisions.add(rec)
+		a.lastSig = sig
+	}
+}
+
+// Decisions returns a copy of the full mission-aware decision log for export.
+func (a *Agent) Decisions() []DecisionRecord { return a.decisions.all() }
+
+// networkEventFor summarises what the network did this cycle, for the timeline's
+// NETWORK EVENT column.
+func networkEventFor(d policy.Decision, override bool) string {
+	switch {
+	case d.Action == policy.Migrate && contains(d.Reason, "unavailable"):
+		return "active bearer lost"
+	case d.Action == policy.Migrate && contains(d.Reason, "degraded"):
+		return "active path degraded"
+	case d.Action == policy.Migrate && contains(d.Reason, "recovered"):
+		return "preferred path recovered"
+	case override:
+		return "network conditions unchanged"
+	default:
+		return "steady"
+	}
+}
+
+func contains(s, sub string) bool { return len(s) >= len(sub) && indexOf(s, sub) >= 0 }
+
+func indexOf(s, sub string) int {
+	for i := 0; i+len(sub) <= len(s); i++ {
+		if s[i:i+len(sub)] == sub {
+			return i
+		}
+	}
+	return -1
+}
+
+func boolStr(b bool) string {
+	if b {
+		return "1"
+	}
+	return "0"
 }
 
 // emitTransition logs an event when a bearer changes health class.

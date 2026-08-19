@@ -10,6 +10,13 @@ import "strings"
 
 // Weights sets the relative importance of each health component. They need not
 // sum to 1; Compute normalises them.
+//
+// Resilience is a structural, mission-relevant dimension distinct from the live
+// health metrics: it captures how inherently stable and hard-to-deny a bearer
+// type is (a hardened SATCOM or tactical-radio path is structurally resilient;
+// a contended cellular or short-range Wi-Fi path less so), independent of its
+// instantaneous latency or loss. A conventional network-only weighting leaves
+// it at zero; mission policy is what gives it weight (see internal/mission).
 type Weights struct {
 	Latency      float64 `json:"latency"`
 	Loss         float64 `json:"loss"`
@@ -18,11 +25,12 @@ type Weights struct {
 	Reliability  float64 `json:"reliability"`
 	Availability float64 `json:"availability"`
 	Cost         float64 `json:"cost"`
+	Resilience   float64 `json:"resilience"`
 }
 
 // Sum returns the total of all weights.
 func (w Weights) Sum() float64 {
-	return w.Latency + w.Loss + w.Jitter + w.Bandwidth + w.Reliability + w.Availability + w.Cost
+	return w.Latency + w.Loss + w.Jitter + w.Bandwidth + w.Reliability + w.Availability + w.Cost + w.Resilience
 }
 
 // Normalized returns weights scaled so they sum to 1. A zero-sum set is
@@ -40,6 +48,7 @@ func (w Weights) Normalized() Weights {
 		Reliability:  w.Reliability / s,
 		Availability: w.Availability / s,
 		Cost:         w.Cost / s,
+		Resilience:   w.Resilience / s,
 	}
 }
 
